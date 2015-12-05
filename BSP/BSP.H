@@ -13,6 +13,15 @@ typedef	float	FP32;
 #define	LOBYTE(__w)		((uint8_t)((__w)&0x0FF))
 #define	HIBYTE(__w)		((uint8_t)(((__w)>>8)&0x0FF))
 
+struct	uPID_Parament 
+{
+	uint16_t Kp;
+	uint16_t Ti;
+	uint16_t Td;
+};
+extern	struct	uPID_Parament Heat;
+extern	struct	uPID_Parament Cool;
+
 extern	void	delay( uint16_t ms );
 extern	void	delay_us ( uint32_t us );
 
@@ -49,20 +58,20 @@ extern	void	bus_SPI1xPortInit( void );
 extern	void	MB_485_Direct_Transmit( void );
 extern	void	MB_485_Direct_Receive( void );
 
-void	MotorPower_OutCmd   ( bool NewState );		//	PC14(高电平有效)
-void	Heater_OutCmd( bool	NewState );				//	PC13(高电平有效)
-void	Fan2_OutCmd   ( bool NewState );			//	PA1(高电平有效)
-void	Fan1_OutCmd   ( bool NewState );			//	PA2(高电平有效)
-void	PowerAIR_OutCmd( bool	NewState );		//	PC15(高电平有效)
-void	HCBoxHeat_OutCmd( uint16_t OutValue );		//	PB14(高电平有效)
-void	HCBoxCool_OutCmd( uint16_t OutValue );		//	PB15(高电平有效)
-void	HCBoxFan_OutCmd( BOOL NewState );
+extern	void	MotorPower_OutCmd   ( bool NewState );		//	PC14(高电平有效)
+extern	void	Heater_OutCmd( bool	NewState );				//	PC13(高电平有效)
+extern	void	Fan2_OutCmd   ( bool NewState );			//	PA1(高电平有效)
+extern	void	Fan1_OutCmd   ( bool NewState );			//	PA2(高电平有效)
+extern	void	PowerAIR_OutCmd( bool	NewState );		//	PC15(高电平有效)
+extern	void	HCBoxHeat_OutCmd( uint16_t OutValue );		//	PB14(高电平有效)
+extern	void	HCBoxCool_OutCmd( uint16_t OutValue );		//	PB15(高电平有效)
+extern	void	HCBoxFan_OutCmd( BOOL NewState );
 
-void	MotorPWM_SetOutput( uint16_t OutValue );	//	PA1(高电平有效)
-void	PWM1_SetOutput( uint16_t OutValue );		//	PA6(低电平有效)
-void	PWM2_SetOutput( uint16_t OutValue );		//	PA7(低电平有效)
-void	PWM3_SetOutput( uint16_t OutValue );		//	PA6(低电平有效)
-void	PWM4_SetOutput( uint16_t OutValue );		//	PA7(低电平有效)
+extern	void	MotorPWM_SetOutput( uint16_t OutValue );	//	PA1(高电平有效)
+extern	void	PWM1_SetOutput( uint16_t OutValue );		//	PA6(低电平有效)
+extern	void	PWM2_SetOutput( uint16_t OutValue );		//	PA7(低电平有效)
+extern	void	PWM3_SetOutput( uint16_t OutValue );		//	PA6(低电平有效)
+extern	void	PWM4_SetOutput( uint16_t OutValue );		//	PA7(低电平有效)
 
 extern	void	PWM1_OutputSet( uint16_t OutValue );
 extern	void	DAC1_OutputSet( uint16_t OutValue );

@@ -716,43 +716,43 @@ void	Select7705( uint8_t C_SEL )
 	}
 }	
 
-void	Fan1_OutCmd( bool NewState )		//	PA1(高电平有效)A 电源
+void	Fan1_OutCmd( bool NewState )		//	PA1(高电平有效)	A 电源
 {
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
-	GPIOA->BSRR = ( NewState ? GPIO_BSRR_BS1 : GPIO_BSRR_BR1 );
+	GPIOA->BSRR = ( NewState ?	GPIO_BSRR_BS1 : GPIO_BSRR_BR1 );
 	MODIFY_REG( GPIOA->CRL, 0x000000F0u, 0x00000030u );
 }
 
-void	Fan2_OutCmd( bool NewState )		//	PA2(高电平有效)B 电机
+void	Fan2_OutCmd( bool NewState )		//	PA2(高电平有效)	B 电机
 {
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
-	GPIOA->BSRR = ( NewState ? GPIO_BSRR_BS2 : GPIO_BSRR_BR2 );
+	GPIOA->BSRR = ( NewState ?	GPIO_BSRR_BS2 : GPIO_BSRR_BR2 );
 	MODIFY_REG( GPIOA->CRL, 0x00000F00u, 0x00000300u );
 }
 
 void	Heater_OutCmd( bool	NewState )		//	PC13(高电平有效)
-{//	PC.13
+{	//	PC.13
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPCEN );
-	GPIOC->BSRR = ( NewState ? GPIO_BSRR_BS13 : GPIO_BSRR_BR13 );
+	GPIOC->BSRR = ( NewState ?	GPIO_BSRR_BS13 : GPIO_BSRR_BR13 );
 	MODIFY_REG( GPIOC->CRH, 0x00F00000u, 0x00300000u );
 }
 void	PowerAIR_OutCmd( bool	NewState )		//	PC15(高电平有效)
-{//	PC.15
+{	//	PC.15
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPCEN );
-	GPIOC->BSRR = ( NewState ? GPIO_BSRR_BS15 : GPIO_BSRR_BR15 );
+	GPIOC->BSRR = ( NewState ?	GPIO_BSRR_BS15 : GPIO_BSRR_BR15 );
 	MODIFY_REG( GPIOC->CRH, 0xF0000000u, 0x30000000u );
 }
 
 void	HCBoxFan_OutCmd( BOOL NewState )		//	PA3(高电平有效)
 {	//	PA.3, on-off mode
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
-	GPIOA->BSRR = NewState ? GPIO_BSRR_BS3 : GPIO_BSRR_BR3;
+	GPIOA->BSRR = NewState ?	GPIO_BSRR_BS3 : GPIO_BSRR_BR3;
 	MODIFY_REG( GPIOA->CRL, 0x0000F000u, 0x00003000u );
 }
 
 
 void	MotorPower_OutCmd( bool NewState )	//	PC14(高电平有效)	 //TSP
-{//	PC.14
+{	//	PC.14
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPCEN );
 	GPIOC->BSRR = ( NewState ? GPIO_BSRR_BS14 : GPIO_BSRR_BR14 );
 	MODIFY_REG( GPIOC->CRH, 0x0F000000u, 0x03000000u );

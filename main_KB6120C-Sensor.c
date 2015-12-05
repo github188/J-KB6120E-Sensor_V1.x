@@ -106,6 +106,8 @@ static	void	HCBox_Exec( void )
 ///////////////////////////////////////////////////
 //	时间片段0，空余时间尽量快的执行
 ///////////////////////////////////////////////////
+
+
 static	void	Slice0_Exec( void )
 {
 	bool	Protect_EN;
@@ -186,6 +188,12 @@ static	void	Slice0_Exec( void )
 	{
 		PWM4_SetOutput( 0u );
 	}
+	Heat.Kp = usRegHoldingBuf[0];
+	Heat.Ti = usRegHoldingBuf[1];
+	Heat.Td = usRegHoldingBuf[2];
+	Cool.Kp = usRegHoldingBuf[10];
+	Cool.Ti = usRegHoldingBuf[11];
+	Cool.Td = usRegHoldingBuf[12];
 }
 
 ///////////////////////////////////////////////////
@@ -226,6 +234,7 @@ static	void	Slice2_Exec( void )
 	usRegInputBuf[3] = rint ( 16.0f * get_NTC2_Temp());	//	电机温度
 	HCBoxControl();
 	Fan1_Exec();			//	电源温度更新，电源散热风扇控制
+	
 	
 }
 
@@ -342,8 +351,10 @@ static void KB6120E_ConfigSelect( void )
 		(!Read_BitN(ucRegDiscBuf, 35)) )
 		Set_BitN( ucRegDiscBuf, 10 );
 }
-		
 
+/*
+	主函数
+*/
 int32_t	main( void )
 {
 	int16_t		Temp16S;
@@ -356,12 +367,18 @@ int32_t	main( void )
 		usRegHoldingBuf[i] = 0u;
 		usRegInputBuf[i]	 = 0u;
 	}
+	
 	for ( i = 0; i < (( 40u + 7 ) / 8 ); ++i )
 	{
 		ucRegCoilsBuf[i] = 0u;
 		ucRegDiscBuf[i] = 0u;
 	}
-
+	usRegHoldingBuf[0] = 10;
+	usRegHoldingBuf[0] = 240;
+	usRegHoldingBuf[0] = 75;
+	usRegHoldingBuf[0] = 15;
+	usRegHoldingBuf[0] = 240;
+	usRegHoldingBuf[0] = 80;
 	DS18B20_1_Read( &Temp16S );		//	读18B20, 跳过 0x0550 环境温度
 	
 	if( DS18B20_2_Read( &Temp16S	))	

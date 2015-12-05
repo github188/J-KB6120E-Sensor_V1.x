@@ -1,19 +1,17 @@
 /**************** (C) COPYRIGHT 2014 青岛金仕达电子科技有限公司 ****************
 * 文 件 名: HCBox.C
 * 创 建 者: 董峰
-* 描  述  : KB-6120E 恒温箱温度控制
-* 最后修改: 2014年4月21日
-*********************************** 修订记录 ***********************************
-* 版  本: V1.1
-* 修订人: 董峰
-* 说  明: 增加显示接口，显示恒温箱状态
-*******************************************************************************/
-
-//#include	"BIOS.H"
+* 描	述	: KB-6120E 恒温箱温度控制
+* 最后修改: 2015年11月28日
+*********************************** 修订记录 ***********************************/
+// Header:		(C) COPYRIGHT 2014 青岛金仕达电子科技有限公司
+// File Name: HCBox.C
+// Author:		...
+// Date:			2015年11月28日
 
 #include "Pin.H"
 #include "BSP.H"
-
+// #include "math.h"
 struct	uHCBox
 {
 	uint8_t		SetMode;		//	设定的控制方式：禁止、加热、制冷、自动 四种方式
@@ -79,7 +77,7 @@ static	uint16_t	FanSpeed;
 uint16_t	volatile  fan_shut_delay;
 void	HCBoxFan_Update( void )
 {	//	定间隔记录转动圈数
-	fanCountList[ fanCountList_index] = HCBoxFan_Circle_Read();
+	fanCountList[fanCountList_index] = HCBoxFan_Circle_Read();
 	if ( ++fanCountList_index >= fanCountListLen )
 	{
 		fanCountList_index = 0u;
@@ -118,7 +116,7 @@ uint16_t	get_HCBoxOutput( void )
 
 uint16_t	get_HCBoxFanSpeed( void )
 {
-	return	FanSpeed_fetch();
+	return	FanSpeed;
 }
 
 /********************************** 功能说明 ***********************************
@@ -155,7 +153,7 @@ void	HCBox_Output( FP32 OutValue )
 		HCBoxOutValue = HCBox.OutValue - 1000;		
 		HCBoxCool_OutCmd( 0 );//	关闭制冷
 		//	开启加热
-		if      ( HCBoxOutValue >  990 )
+		if      ( HCBoxOutValue > 990 )
 		{		
 			HCBoxHeat_OutCmd( 1000 );		
 		}
@@ -179,7 +177,7 @@ void	HCBox_Output( FP32 OutValue )
 }
 
 
-/********************************** 功能说明 ***********************************
+/********************************* *功能说明* **********************************
 *	加热器恒温箱共用一个温度信号，两者不能同时使用。
 *******************************************************************************/
 extern	uint16_t	iRetry;
@@ -196,7 +194,7 @@ void	HCBoxValue_Update( void )
 *******************************************************************************/
 volatile	BOOL	EN_Cool = TRUE;
 volatile	BOOL	EN_Heat = TRUE;
-static	BOOL ControlFlag = TRUE;
+static		BOOL 	ControlFlag = TRUE;
 static	void	HCBox_Wait( void )
 {
 	//	设置自动模式即无法确定实际工作模式可暂时进入等待状态
@@ -204,17 +202,18 @@ static	void	HCBox_Wait( void )
 	HCBox_Output( 0.0f );	//	等待状态输出
 }
 
-
-
+#include "math.h"
+struct	uPID_Parament Heat;
+struct	uPID_Parament Cool;
 /********************************** 功能说明 ***********************************
 *  加热状态：加热方式工作
 *******************************************************************************/
 
 static	void	HCBox_Heat( void )  
 {
-	const	FP32	Kp = 0.0390625f;			//  5/128*2
-	const	FP32	Ki = ( Kp / 160.0f );	//	160.0f 10.0f 
-	const	FP32	Kd = ( Kp * 130.0f );	//	80.0f30
+	FP32	Kp;//0.0390625f;			//  5/128		//	*2
+	FP32	Ki;	//320.0f 	160.0f 	//	10.0f 
+	FP32	Kd;	//80.0f	80.0f		//	30.0
 
 //	const	FP32	Kp = 0.2;
 //	const	FP32	Ki = ( Kp / 100.0f );
@@ -225,29 +224,30 @@ static	void	HCBox_Heat( void )
 	static FP32	Up = 0.0f, Ui = 0.0f, Ud = 0.0f;
 	static FP32	Upid = 0.0f;
 
+	Kp = (FP32)Heat.Kp / 128; 
+	Ki = ( Kp / (FP32)Heat.Ti );
+	Kd = ( Kp * (FP32)Heat.Td );
+
 	if( EN_Heat )
 	{
-	
 		HCBoxValue_Update();
 		//	计算PID输出，输出量值归一化到[0.0 至+1.0]范围
 		TempRun = HCBox.RunTemp;
-		TempSet = HCBox.SetTemp - ((FP32)( usRegInputBuf[2] * 0.0625 - HCBox.SetTemp )) * 0.1f;//	跟环境温度有微小关系 
+		TempSet = HCBox.SetTemp;// - ((FP32)( usRegInputBuf[2] * 0.0625 - HCBox.SetTemp )) * 0.01f;//	跟环境温度有微小关系 
 		Ek_1 = Ek;
 		Ek = ( TempSet - TempRun );
 		Up = Kp * Ek;
 		Ui += Ki * Ek;
 		if ( Ui < -0.3f ){  Ui = -0.3f; }
 		if ( Ui > +0.3f ){  Ui = +0.3f; }//0.25
-		Ud = ( Ud * 0.8f ) + (( Kd * ( Ek - Ek_1 )) * 0.2f );
+		if( ( HCBox.RunTemp - HCBox.SetTemp ) >= 0 ) 
+			Ud = ( Ud * 0.9f ) + (( Kd * ( - fabs(Ek - Ek_1) )) * 0.1f );
+		else
+			Ud = ( Ud * 0.8f ) + (( Kd * (Ek - Ek_1)) * 0.2f );
 		Upid = ( Up + Ui + Ud );
 		if ( Upid <  0.0f ){  Upid = 0.0f; }
 		if ( Upid > +1.0f ){  Upid = 1.0f; }
-
-		if( ( HCBox.RunTemp - HCBox.SetTemp ) > 0 ) 
-		{
-			ControlFlag = FALSE;
-			Upid = 0.0f;
-		}		
+		
 		
 		HCBox_Output( Upid );	//	加热状态输出（隐含循环定时功能）
 	}
@@ -258,39 +258,38 @@ static	void	HCBox_Heat( void )
 
 static	void	HCBox_Cool( void )
 {
-	const	FP32	Kp = 0.1171875f;			//	15 / 128*2
-	const	FP32	Ki = ( Kp / 240.0f );		//	240.0f10.0
-	const	FP32	Kd = ( Kp * 80.0f );	//	80.0f3.0
+	FP32	Kp; ////0.1171875f;	15 / 128	//*2
+	FP32	Ki;	//	;240.0f		//10.0
+	FP32	Kd;	//	80.0f			//3.0
 	static FP32	Ek_1, Ek = 0.0f;
 	static FP32	Up = 0.0f, Ui = 0.0f, Ud = 0.0f;
 	static FP32	Upid = 0.0f;
 	FP32	 TempRun, TempSet;
-
+	
+	Kp = (FP32)Cool.Kp / 128; 
+  Ki = ( Kp / (FP32)Cool.Ti );
+  Kd = ( Kp * (FP32)Cool.Td );
 	//	计算PID输出，输出量值归一化到[-1.0至 0.0]范围
+	
 	if( EN_Cool )
 	{
-	
 		HCBoxValue_Update();		//	实时读取温度;  if ( 失败 ) 转入待机状态
 		//	计算PID输出，输出量值归一化到[-1.0至 0.0]范围
 		TempRun = HCBox.RunTemp;
-		TempSet = HCBox.SetTemp - ((FP32)( usRegInputBuf[2] * 0.0625 - HCBox.SetTemp )) * 0.1f;//	跟环境温度有微小关系 ;
+		TempSet = HCBox.SetTemp;// - ((FP32)( usRegInputBuf[2] * 0.0625 - HCBox.SetTemp )) * 0.01f;//	跟环境温度有微小关系 ;
 		Ek_1 = Ek;
 		Ek  = ( TempSet - TempRun );
 		Up  = Kp * Ek;
 		Ui += Ki * Ek;
 		if ( Ui < -0.30f ){  Ui = -0.30f; }
 		if ( Ui > +0.30f ){  Ui = +0.30f; }	//	0.5
-		Ud =( Ud * 0.8f ) + (( Kd * ( Ek - Ek_1 )) * 0.2f ); 
+		if( ( HCBox.RunTemp - HCBox.SetTemp ) <= 0 ) 
+			Ud =( Ud * 0.9f ) + (( Kd * fabs( Ek - Ek_1 )) * 0.1f ); 
+		else
+			Ud =( Ud * 0.8f ) + (( Kd * ( Ek - Ek_1 )) * 0.2f ); 
 		Upid = Up + Ui + Ud;
 		if ( Upid >  0.0f ){  Upid =  0.0f; }
 		if ( Upid < -1.0f ){  Upid = -1.0f; }
-
-		if( ( HCBox.RunTemp - HCBox.SetTemp ) < 0 ) 
-		{
-			ControlFlag = FALSE;
-			Upid = 0.0f;
-		}
-
 		//	风扇输出控制（制冷方式下开启风扇，暂不调速－2014年1月15日）
 		if ( Upid < 0.0f )
 		{
@@ -298,11 +297,11 @@ static	void	HCBox_Cool( void )
 			HCBoxFan_OutCmd( TRUE );
 		}
 		//	输出
-		if ( FanSpeed < 100u )	//	风扇不转，禁止制冷片工作
-		{													
-				HCBox_Output( 0.0f );	//	注意与等待状态的输出保持一致
-		}
-		else
+// 		if ( FanSpeed < 100u )	//	风扇不转，禁止制冷片工作
+// 		{													
+// 				HCBox_Output( 0.0f );	//	注意与等待状态的输出保持一致
+// 		}
+// 		else
 		{
 			HCBox_Output( Upid );	//	制冷状态输出（隐含循环定时功能）
 		}
@@ -311,7 +310,7 @@ static	void	HCBox_Cool( void )
 }
 
 
-#include "math.h"
+
 /********************************** 功能说明 ***********************************
 *	恒温箱温度控制
 *******************************************************************************/
@@ -328,45 +327,79 @@ void	HCBoxControl( void )
 		HCBoxFan_Update();			//	测量风扇转速
 		HCBoxValue_Update();		//	实时参数读取;
 		EK = HCBox.RunTemp - HCBox.SetTemp;
-
-		if( !ControlFlag )
-		{	
-			EN_Cool = FALSE;
-			EN_Heat = FALSE;
-			if( fabs( EK ) > 2 )
-				HCBoxCount ++;
+	
+		switch ( HCBox.SetMode )
+		{
+		case MD_Auto:
+			if( !ControlFlag )
+			{	
+				EN_Cool = FALSE;
+				EN_Heat = FALSE;
+				if( fabs( EK ) >= 1 )
+					HCBoxCount ++;
+				else
+					HCBoxCount = 0;				
+				if(( HCBoxCount >= 60 * 3 ) || ( fabs( EK ) >= 5 ))	//	温差大于2℃且小于5℃超过3分钟或者30分钟内温度变化太快（温差大于5℃）
+				{
+					ControlFlag = TRUE;
+				}
+			}
 			else
-				HCBoxCount = 0;				
-			if( HCBoxCount >= 60 * 30 )
+			{  
+				HCBoxCount = 0;
+				if( EK >=  1 )
+				{
+					EN_Cool = TRUE;
+					EN_Heat = FALSE;		
+				}		
+				if( EK <= -1 )
+				{
+					EN_Cool = FALSE;
+					EN_Heat = TRUE;
+				}		 
+			}			
+			break;
+		case MD_Cool:	
+			if(  ( HCBox.RunTemp - HCBox.SetTemp ) <= -1 ) 
+			{
+				ControlFlag = FALSE;
+			}
+			else
+			{
 				ControlFlag = TRUE;
+				EN_Cool = TRUE; 
+				EN_Heat = FALSE;	
+			}
+			break;
+		case MD_Heat:	
+			if( ( HCBox.RunTemp - HCBox.SetTemp ) >= 1 ) 
+			{
+				ControlFlag = FALSE;
+			}
+			else
+			{
+				ControlFlag = TRUE;
+				EN_Heat = TRUE; 
+				EN_Cool = FALSE;	
+			}
+			break;
+		default:
+		case MD_Shut:	
+			EN_Heat = 
+			EN_Cool = FALSE;				
+			HCBox_Wait();	
+			break;							
+		}
+		if( ControlFlag )
+		{
+			if( EN_Heat )
+				HCBox_Heat();
+			if( EN_Cool )
+				HCBox_Cool();
 		}
 		else
-		{
-			HCBoxCount = 0;
-			if( EK >  2 )
-			{
-				EN_Cool = TRUE;
-				EN_Heat = FALSE;
-			}		
-			if( EK < -2 )
-			{
-				EN_Cool = FALSE;
-				EN_Heat = TRUE;
-			}
-			
-			switch ( HCBox.SetMode )
-			{
-			case MD_Auto:
-				if( EN_Cool )
-					HCBox_Cool();
-				if( EN_Heat )
-					HCBox_Heat();
-				break;
-			case MD_Cool:	EN_Cool = TRUE; EN_Heat = FALSE;	HCBox_Cool();	break;
-			case MD_Heat:	EN_Heat = TRUE; EN_Cool = FALSE;	HCBox_Heat();	break;
-			default:
-			case MD_Shut:	EN_Heat = EN_Cool = FALSE;				HCBox_Wait();	break;							
-			}			
+		{	
+			HCBox_Wait();
 		}
 	}	
 }
@@ -437,145 +470,145 @@ void	HCBoxControl( void )
 
 
 
-#if 0
+// #if 0
 
-// 使用TIMx的CH1的捕获功能，用DMA记录脉冲的周期.
-#define	CMR_Len	10
-static	uint16_t	CMRA[CMR_Len];
+// // 使用TIMx的CH1的捕获功能，用DMA记录脉冲的周期.
+// #define	CMR_Len	10
+// static	uint16_t	CMRA[CMR_Len];
 
-// void	CMR1( void )
-// {
+// // void	CMR1( void )
+// // {
+// // 	DMA_Channel_TypeDef	* DMA1_Channelx = DMA1_Channel6;
+// // 	TIM_TypeDef * TIMx = TIM16;
+// // 	
+// // 	//	DMA1 channel1 configuration
+// // 	SET_BIT ( RCC->AHBENR,  RCC_AHBENR_DMA1EN );
+// // 	//	DMA模块禁能, 重新配置
+// // 	DMA1_Channelx->CCR  = 0u;
+// // 	DMA1_Channelx->CCR  = DMA_CCR6_PL_0						//	通道优先级：01 中等
+// // 						| DMA_CCR6_PSIZE_0					//	内存数据位：01 16位
+// // 						| DMA_CCR6_MSIZE_0					//	外设数据位：01 16位
+// // 						| DMA_CCR6_MINC						//	增量模式：内存增量
+// // 						| DMA_CCR6_CIRC						//	循环传输：使能循环
+// // 					//	| DMA_CCR6_DIR						//	传送方向：从外设读
+// // 						;
+// // 	DMA1_Channelx->CPAR  = (uint32_t) &TIM16->CCR1;			//	设置DMA外设地址
+// // 	DMA1_Channelx->CMAR  = (uint32_t) CMRA;					//	内存地址
+// // 	DMA1_Channelx->CNDTR = CMR_Len;							//	传输数量
+// // 	SET_BIT ( DMA1_Channelx->CCR, DMA_CCR1_EN );			//	使能DMA通道
+
+// // 	//	配置TIMx 进行输入捕获。
+// // 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_TIM16EN );
+// // 	TIMx->CR1   = 0u;
+// // 	TIMx->CR2   = 0u;
+// // 	TIMx->CCER  = 0u;
+// // 	TIMx->CCMR1 = 0u;
+// // 	TIMx->CCMR2 = 0u;
+// // 	//	TIMx 时基初始化: 输入时钟频率24MHz，分频成1MHz的输入。
+// // 	//	时基决定可以测量的最低速度与最高速度。
+// // 	TIMx->PSC = 240u - 1;	//	10us @ 24MHz
+// // 	TIMx->ARR = 0xFFFFu;
+// // 	TIMx->EGR = TIM_EGR_UG;
+// // 	
+// // 	TIMx->CCMR1 = TIM_CCMR1_CC1S_0					//	CC1S  : 01b   IC1 映射到IT1上。
+// // 				| TIM_CCMR1_IC1F_1|TIM_CCMR1_IC1F_0	//	IC1F  : 0011b 配置输入滤波器，8个定时器时钟周期滤波
+// // 				| TIM_CCMR1_IC2PSC_1				//	IC1PSC: 01b   配置输入分频，每隔2次事件发生一次捕获
+// // 				;
+// // 	TIMx->CCER  = TIM_CCER_CC1E						//	允许 CCR1 执行捕获
+// // 				| TIM_CCER_CC1P						//	负边沿CCR1捕获信号周期。
+// // 				;
+// // 	TIMx->DIER  = TIM_DIER_CC1DE;
+
+// // 	TIMx->CR1   = TIM_CR1_CEN;						//	使能定时器
+
+// // 	//	配置管脚：PA.6 浮空输入
+// // 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
+// // 	MODIFY_REG( GPIOA->CRL, 0x0F000000u, 0x04000000u );
+// // }
+
+// uint16_t	fetchSpeed( void )
+// {	//	取 DMA 计数 或 内存地址指针，并连续向前增量两次。
+// 	//	如果DMA计数 或 内存指针都不可用，取N次的差值，并丢弃最大值和最小值。
+// 	
+// 	/*	固定间隔1s记录风扇转动圈数到缓冲区，
+// 	 *	依次计算增量并滤波的结果即风扇转速。
+// 	 */
 // 	DMA_Channel_TypeDef	* DMA1_Channelx = DMA1_Channel6;
-// 	TIM_TypeDef * TIMx = TIM16;
+// 	uint8_t 	ii, index;
+// 	uint16_t	sum = 0u;
+// //	uint16_t	max = 0u;
+// //	uint16_t	min = 0xFFFFu;
+// 	uint16_t	x0, x1, period;
+
+// 	index = ( DMA1_Channelx->CMAR - ( uint32_t ) CMRA ) / sizeof( uint16_t);	//	内存地址
+// 	if ( ++index >= CMR_Len ){  index = 0u; }
+// 	if ( ++index >= CMR_Len ){  index = 0u; }
 // 	
-// 	//	DMA1 channel1 configuration
-// 	SET_BIT ( RCC->AHBENR,  RCC_AHBENR_DMA1EN );
-// 	//	DMA模块禁能, 重新配置
-// 	DMA1_Channelx->CCR  = 0u;
-// 	DMA1_Channelx->CCR  = DMA_CCR6_PL_0						//	通道优先级：01 中等
-// 						| DMA_CCR6_PSIZE_0					//	内存数据位：01 16位
-// 						| DMA_CCR6_MSIZE_0					//	外设数据位：01 16位
-// 						| DMA_CCR6_MINC						//	增量模式：内存增量
-// 						| DMA_CCR6_CIRC						//	循环传输：使能循环
-// 					//	| DMA_CCR6_DIR						//	传送方向：从外设读
-// 						;
-// 	DMA1_Channelx->CPAR  = (uint32_t) &TIM16->CCR1;			//	设置DMA外设地址
-// 	DMA1_Channelx->CMAR  = (uint32_t) CMRA;					//	内存地址
-// 	DMA1_Channelx->CNDTR = CMR_Len;							//	传输数量
-// 	SET_BIT ( DMA1_Channelx->CCR, DMA_CCR1_EN );			//	使能DMA通道
+// 	x1 = CMRA[index];
+// 	for ( ii = CMR_Len - 2u; ii != 0; --ii )
+// 	{
+// 		//	依次求增量得到速度
+// 		x0 = x1;
+// 		if ( ++index >= CMR_Len ){  index = 0u; }
+// 		x1 = CMRA[index];
+// 		period = (uint16_t)( x1 - x0 );
+// 		//	对多个数据进行滤波
+// //		if ( period > max ) {  max = period; }
+// //		if ( period < min ) {  min = period; }
+// //		sum += period;
+// 	}
+// 	period = sum / ( CMR_Len - 2u );
+// //	period = (uint16_t)( sum - max - min ) / ( CMR_Len - (1u+2u));
 
-// 	//	配置TIMx 进行输入捕获。
-// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_TIM16EN );
-// 	TIMx->CR1   = 0u;
-// 	TIMx->CR2   = 0u;
-// 	TIMx->CCER  = 0u;
-// 	TIMx->CCMR1 = 0u;
-// 	TIMx->CCMR2 = 0u;
-// 	//	TIMx 时基初始化: 输入时钟频率24MHz，分频成1MHz的输入。
-// 	//	时基决定可以测量的最低速度与最高速度。
-// 	TIMx->PSC = 240u - 1;	//	10us @ 24MHz
-// 	TIMx->ARR = 0xFFFFu;
-// 	TIMx->EGR = TIM_EGR_UG;
-// 	
-// 	TIMx->CCMR1 = TIM_CCMR1_CC1S_0					//	CC1S  : 01b   IC1 映射到IT1上。
-// 				| TIM_CCMR1_IC1F_1|TIM_CCMR1_IC1F_0	//	IC1F  : 0011b 配置输入滤波器，8个定时器时钟周期滤波
-// 				| TIM_CCMR1_IC2PSC_1				//	IC1PSC: 01b   配置输入分频，每隔2次事件发生一次捕获
-// 				;
-// 	TIMx->CCER  = TIM_CCER_CC1E						//	允许 CCR1 执行捕获
-// 				| TIM_CCER_CC1P						//	负边沿CCR1捕获信号周期。
-// 				;
-// 	TIMx->DIER  = TIM_DIER_CC1DE;
-
-// 	TIMx->CR1   = TIM_CR1_CEN;						//	使能定时器
-
-// 	//	配置管脚：PA.6 浮空输入
-// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
-// 	MODIFY_REG( GPIOA->CRL, 0x0F000000u, 0x04000000u );
+// 	if ( period == 0u )
+// 	{
+// 		return	0xFFFFu;
+// 	}
+// 	else
+// 	{	//	每分钟的计数周期 / 每个脉冲的计数时间 => 每分钟的转速
+// 		return	(( 60u * 100000u ) / period );
+// 	}
 // }
 
-uint16_t	fetchSpeed( void )
-{	//	取 DMA 计数 或 内存地址指针，并连续向前增量两次。
-	//	如果DMA计数 或 内存指针都不可用，取N次的差值，并丢弃最大值和最小值。
-	
-	/*	固定间隔1s记录风扇转动圈数到缓冲区，
-	 *	依次计算增量并滤波的结果即风扇转速。
-	 */
-	DMA_Channel_TypeDef	* DMA1_Channelx = DMA1_Channel6;
-	uint8_t 	ii, index;
-	uint16_t	sum = 0u;
-//	uint16_t	max = 0u;
-//	uint16_t	min = 0xFFFFu;
-	uint16_t	x0, x1, period;
-
-	index = ( DMA1_Channelx->CMAR - ( uint32_t ) CMRA ) / sizeof( uint16_t);	//	内存地址
-	if ( ++index >= CMR_Len ){  index = 0u; }
-	if ( ++index >= CMR_Len ){  index = 0u; }
-	
-	x1 = CMRA[index];
-	for ( ii = CMR_Len - 2u; ii != 0; --ii )
-	{
-		//	依次求增量得到速度
-		x0 = x1;
-		if ( ++index >= CMR_Len ){  index = 0u; }
-		x1 = CMRA[index];
-		period = (uint16_t)( x1 - x0 );
-		//	对多个数据进行滤波
-//		if ( period > max ) {  max = period; }
-//		if ( period < min ) {  min = period; }
-//		sum += period;
-	}
-	period = sum / ( CMR_Len - 2u );
-//	period = (uint16_t)( sum - max - min ) / ( CMR_Len - (1u+2u));
-
-	if ( period == 0u )
-	{
-		return	0xFFFFu;
-	}
-	else
-	{	//	每分钟的计数周期 / 每个脉冲的计数时间 => 每分钟的转速
-		return	(( 60u * 100000u ) / period );
-	}
-}
-
-#endif
-// iCount;
+// #endif
+// // iCount;
 
 
-// _isr_t( void )
+// // _isr_t( void )
 
-// {
-// 	static uint8_t iPWM =0;
-// 	iCount ++;
-// 	if ( (t1 - t0) > 1000 )
-// 	//	t0 += 1000;
-// 	(t0 = t1;
-// 	{
-// 		
-// 	}
-// 	
-// 	
-// 	++iPWM;
-// 	if (iPWM>= 100 )
-// 	{
-// 		iPWM = 0;
-// 	}
-// 	
-// 	Heat = iPWM>out
-// 	
-// }
-// void heat( void )
-// {
-// 	static t0;// = iCount;
-// 	t1 = iCount;
-// 	if ( (t1 - t0) > 1000 )
-// 	//	t0 += 1000;
-// 	(t0 = t1;
-// 		
-// 	{
-// 		pid = ???
-// 		out = pid;		
-// 	}
-// 	
-// 	
-// }
+// // {
+// // 	static uint8_t iPWM =0;
+// // 	iCount ++;
+// // 	if ( (t1 - t0) > 1000 )
+// // 	//	t0 += 1000;
+// // 	(t0 = t1;
+// // 	{
+// // 		
+// // 	}
+// // 	
+// // 	
+// // 	++iPWM;
+// // 	if (iPWM>= 100 )
+// // 	{
+// // 		iPWM = 0;
+// // 	}
+// // 	
+// // 	Heat = iPWM>out
+// // 	
+// // }
+// // void heat( void )
+// // {
+// // 	static t0;// = iCount;
+// // 	t1 = iCount;
+// // 	if ( (t1 - t0) > 1000 )
+// // 	//	t0 += 1000;
+// // 	(t0 = t1;
+// // 		
+// // 	{
+// // 		pid = ???
+// // 		out = pid;		
+// // 	}
+// // 	
+// // 	
+// // }
 
