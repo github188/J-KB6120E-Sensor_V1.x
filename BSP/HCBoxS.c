@@ -211,9 +211,9 @@ struct	uPID_Parament Cool;
 
 static	void	HCBox_Heat( void )  
 {
-	FP32	Kp;//0.0390625f;			//  5/128		//	*2
-	FP32	Ki;	//320.0f 	160.0f 	//	10.0f 
-	FP32	Kd;	//80.0f	80.0f		//	30.0
+	FP32	Kp = 10.0f / 128.0f;//0.0390625f;			//  5/128		//	*2
+	FP32	Ki = ( Kp / 240.0f );	//320.0f 	160.0f 	//	10.0f 
+	FP32	Kd = ( Kp * 75.0f );	//80.0f	80.0f		//	30.0
 
 //	const	FP32	Kp = 0.2;
 //	const	FP32	Ki = ( Kp / 100.0f );
@@ -223,10 +223,6 @@ static	void	HCBox_Heat( void )
 	static FP32	Ek_1, Ek = 0.0f;
 	static FP32	Up = 0.0f, Ui = 0.0f, Ud = 0.0f;
 	static FP32	Upid = 0.0f;
-
-	Kp = (FP32)Heat.Kp / 128; 
-	Ki = ( Kp / (FP32)Heat.Ti );
-	Kd = ( Kp * (FP32)Heat.Td );
 
 	if( EN_Heat )
 	{
@@ -258,17 +254,15 @@ static	void	HCBox_Heat( void )
 
 static	void	HCBox_Cool( void )
 {
-	FP32	Kp; ////0.1171875f;	15 / 128	//*2
-	FP32	Ki;	//	;240.0f		//10.0
-	FP32	Kd;	//	80.0f			//3.0
+	FP32	Kp = 25.0f / 128.0f ; ////0.1171875f;	15 / 128	//*2
+	FP32	Ki = ( Kp / 180.0f );	//	;240.0f		//10.0
+	FP32	Kd = ( Kp * 60.0f ) ;	//	80.0f			//3.0
 	static FP32	Ek_1, Ek = 0.0f;
 	static FP32	Up = 0.0f, Ui = 0.0f, Ud = 0.0f;
 	static FP32	Upid = 0.0f;
 	FP32	 TempRun, TempSet;
-	
-	Kp = (FP32)Cool.Kp / 128; 
-  Ki = ( Kp / (FP32)Cool.Ti );
-  Kd = ( Kp * (FP32)Cool.Td );
+  
+  
 	//	计算PID输出，输出量值归一化到[-1.0至 0.0]范围
 	
 	if( EN_Cool )
