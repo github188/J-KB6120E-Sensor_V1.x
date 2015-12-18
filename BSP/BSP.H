@@ -13,12 +13,12 @@ typedef	float	FP32;
 #define	LOBYTE(__w)		((uint8_t)((__w)&0x0FF))
 #define	HIBYTE(__w)		((uint8_t)(((__w)>>8)&0x0FF))
 
-struct	uPID_Parament 
-{
-	uint16_t Kp;
-	uint16_t Ti;
-	uint16_t Td;
-};
+// struct	uPID_Parament 
+// {
+// 	uint16_t Kp;
+// 	uint16_t Ti;
+// 	uint16_t Td;
+// };
 extern	struct	uPID_Parament Heat;
 extern	struct	uPID_Parament Cool;
 

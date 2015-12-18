@@ -203,8 +203,8 @@ static	void	HCBox_Wait( void )
 }
 
 #include "math.h"
-struct	uPID_Parament Heat;
-struct	uPID_Parament Cool;
+// struct	uPID_Parament Heat;
+// struct	uPID_Parament Cool;
 /********************************** 功能说明 ***********************************
 *  加热状态：加热方式工作
 *******************************************************************************/

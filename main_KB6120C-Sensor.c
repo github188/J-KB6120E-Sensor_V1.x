@@ -188,12 +188,12 @@ static	void	Slice0_Exec( void )
 	{
 		PWM4_SetOutput( 0u );
 	}
-	Heat.Kp = usRegHoldingBuf[0];
-	Heat.Ti = usRegHoldingBuf[1];
-	Heat.Td = usRegHoldingBuf[2];
-	Cool.Kp = usRegHoldingBuf[10];
-	Cool.Ti = usRegHoldingBuf[11];
-	Cool.Td = usRegHoldingBuf[12];
+// 	Heat.Kp = usRegHoldingBuf[0];
+// 	Heat.Ti = usRegHoldingBuf[1];
+// 	Heat.Td = usRegHoldingBuf[2];
+// 	Cool.Kp = usRegHoldingBuf[10];
+// 	Cool.Ti = usRegHoldingBuf[11];
+// 	Cool.Td = usRegHoldingBuf[12];
 }
 
 ///////////////////////////////////////////////////
@@ -218,9 +218,9 @@ static	void	Slice1_Exec( void )
 		usRegInputBuf[37] = Temp16S;	//	计前温度（时均D）	
 	}
 	
-	if( Read_BitN( ucRegDiscBuf, 5 ) )
+// 	if( Read_BitN( ucRegDiscBuf, 5 ) )
 		HCBox_Exec();			//	恒温箱温度更新，恒温箱温度控制
-	if( Read_BitN( ucRegDiscBuf, 8 ) )
+// 	if( Read_BitN( ucRegDiscBuf, 8 ) )
 		Heater_Exec();		//	加热器温度更新，加热器温度控制
 	HCBoxControl();
 
@@ -373,26 +373,26 @@ int32_t	main( void )
 		ucRegCoilsBuf[i] = 0u;
 		ucRegDiscBuf[i] = 0u;
 	}
-	usRegHoldingBuf[0] = 10;
-	usRegHoldingBuf[0] = 240;
-	usRegHoldingBuf[0] = 75;
-	usRegHoldingBuf[0] = 15;
-	usRegHoldingBuf[0] = 240;
-	usRegHoldingBuf[0] = 80;
+// 	usRegHoldingBuf[0] = 10;
+// 	usRegHoldingBuf[0] = 240;
+// 	usRegHoldingBuf[0] = 75;
+// 	usRegHoldingBuf[0] = 15;
+// 	usRegHoldingBuf[0] = 240;
+// 	usRegHoldingBuf[0] = 80;
 	DS18B20_1_Read( &Temp16S );		//	读18B20, 跳过 0x0550 环境温度
-	
+// 	DS18B20_2_Read( &Temp16S	);
+// 	DS18B20_3_Read( &Temp16S	);
+// 	DS18B20_4_Read( &Temp16S	);
+// 	delay( 1000u );
 	if( DS18B20_2_Read( &Temp16S	))	
 		Set_BitN( ucRegDiscBuf, 8 );	//	加热器温度
-	
 	DS18B20_3_Read( &Temp16S );		//	计前温度
-	
 	if( DS18B20_4_Read( &Temp16S ) )	
-		Set_BitN( ucRegDiscBuf, 5 );	//	恒温箱温度
-	
+		Set_BitN( ucRegDiscBuf, 5 );	//	恒温箱温度	
 	Initialize7705( );						//	计压差压初始化
 
 	//	仪器自动配置
-	KB6120E_ConfigSelect();			
+	KB6120E_ConfigSelect();
 	
 	//	初始化MODBUS协议栈
 	MODBUS_Init( 1 );
