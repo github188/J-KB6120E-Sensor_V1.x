@@ -291,11 +291,11 @@ static	void	HCBox_Cool( void )
 			HCBoxFan_OutCmd( TRUE );
 		}
 		//	输出
-// 		if ( FanSpeed < 100u )	//	风扇不转，禁止制冷片工作
-// 		{													
-// 				HCBox_Output( 0.0f );	//	注意与等待状态的输出保持一致
-// 		}
-// 		else
+		if ( FanSpeed < 100u )	//	风扇不转，禁止制冷片工作
+		{													
+				HCBox_Output( 0.0f );	//	注意与等待状态的输出保持一致
+		}
+		else
 		{
 			HCBox_Output( Upid );	//	制冷状态输出（隐含循环定时功能）
 		}

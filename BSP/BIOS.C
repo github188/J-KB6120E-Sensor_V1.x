@@ -5,7 +5,8 @@
 
 #define	PinBB( _Port, _Num )	(*(__IO int32_t *)(PERIPH_BB_BASE + ((uint32_t)&(_Port) - PERIPH_BASE) * 32u + (_Num) * 4u ))
 
-#pragma O3
+#pragma	push
+#pragma O3	Ospace
 void	delay_us ( uint32_t us )
 {
 	while ( us-- )
@@ -16,7 +17,7 @@ void	delay_us ( uint32_t us )
 		__nop(); __nop(); __nop(); __nop(); __nop();
 	}
 }
-
+#pragma	pop
 void	delay( uint16_t ms )
 {
 	while ( ms-- )
@@ -682,6 +683,26 @@ void	HCBoxCool_OutCmd( uint16_t OutValue )		//	PB15(高电平有效)
 }
 
 
+/**************************************************
+*	看门狗
+***************************************************/
+
+void	IWDG_Init( void )
+{
+	SET_BIT( RCC->APB1ENR, RCC_APB1ENR_WWDGEN );
+	IWDG->KR = 0xCCCC;	
+}
+
+
+
+void	IWDG_Clear( void )
+{
+	IWDG->KR = 0xAAAA;	
+}
+
+
+
+
 /**
  *	访问 GPIO
  */
@@ -708,8 +729,8 @@ void	Select7705( uint8_t C_SEL )
 	case CS7705_1:	GPIOB->BSRR =(GPIO_BSRR_BR8)| GPIO_BSRR_BS12 | GPIO_BSRR_BS11 | GPIO_BSRR_BS9 | GPIO_BSRR_BS10;		break;	//	对应位复位		粉尘
 	case CS7705_2:	GPIOB->BSRR =	GPIO_BSRR_BS8 |(GPIO_BSRR_BR12)| GPIO_BSRR_BS11 | GPIO_BSRR_BS9 | GPIO_BSRR_BS10;		break;	//	对应位复位		日均A
 	case CS7705_3:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 |(GPIO_BSRR_BR11)| GPIO_BSRR_BS9 | GPIO_BSRR_BS10;		break;	//	对应位复位		日均B
-	case CS7705_4:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 | GPIO_BSRR_BS11 |(GPIO_BSRR_BR9)| GPIO_BSRR_BS10;		break;	//	对应位复位		时均C	
-	case CS7705_5:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 | GPIO_BSRR_BS11 | GPIO_BSRR_BS9 |(GPIO_BSRR_BR10);		break;	//	对应位复位		时均D
+	case CS7705_4:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 | GPIO_BSRR_BS11 |(GPIO_BSRR_BR9)| GPIO_BSRR_BS10;		break;	//	对应位复位		时均D
+	case CS7705_5:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 | GPIO_BSRR_BS11 | GPIO_BSRR_BS9 |(GPIO_BSRR_BR10);	break;	//	对应位复位		时均C	
 //case CS7705_all:	GPIOA->BSRR = (GPIO_BSRR_BR2)|(GPIO_BSRR_BR3)|(GPIO_BSRR_BR4);	break;	//	全部复位
 	default:
 	case CS7705_none: GPIOB->BSRR = GPIO_BSRR_BS8| GPIO_BSRR_BS9 | GPIO_BSRR_BS10| GPIO_BSRR_BS11 | GPIO_BSRR_BS12;	break;	//	全部置位

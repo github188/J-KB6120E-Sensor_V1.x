@@ -42,6 +42,9 @@ extern	BOOL	OW_4_Init( void );
 extern	BOOL	OW_4_Reset( void );
 extern	BOOL	OW_4_Slot( BOOL bitOut );
 
+//	BIOS.C - IWDG
+extern	void	IWDG_Init( void );
+extern	void	IWDG_Clear( void );
 //	BIOS.C - I2C
 enum	I2C_DirectSet { I2C_Write, I2C_Read };
 enum	I2C_AcknowlegeSet { I2C_ACK, I2C_NoACK };
