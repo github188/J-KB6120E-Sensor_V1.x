@@ -18,7 +18,7 @@ static	void	Fan1_Exec( void )
 {
 	static	bool	OutState = false;
 	
-	FP32	Temp = get_NTC1_Temp();	//电源
+	FP32	Temp = get_NTC1_Temp();					//	电源
 	
 	//	高于40℃开，低于40℃关。
 	if ( Temp > 40.5f ){	OutState = true;	}
@@ -356,7 +356,7 @@ static void KB6120E_ConfigSelect( void )
 			 Set_BitN( ucRegDiscBuf, 15 + i * 5	);
 		}
 	}
-	if( Read_BitN(ucRegDiscBuf, 15)	&& 
+	if( Read_BitN(ucRegDiscBuf, 10)	&& 
 		(!Read_BitN(ucRegDiscBuf, 20)) && 
 		(!Read_BitN(ucRegDiscBuf, 25)) && 
 		(!Read_BitN(ucRegDiscBuf, 30)) && 
@@ -385,17 +385,17 @@ int32_t	main( void )
 		ucRegCoilsBuf[i] = 0u;
 		ucRegDiscBuf[i] = 0u;
 	}
+	usRegInputBuf[4] = 0xFFFF;	
 
 	//	仪器自动配置
 	KB6120E_ConfigSelect();
 	
 	//	初始化MODBUS协议栈
 	MODBUS_Init( 1 );
-	
 	//	看门狗配置
 	//	InitWDT();
 	IWDG_Init();
-// 	usRegInputBuf[4] = 0xFF;
+
 	
 	for(;;)  
 	
@@ -407,6 +407,10 @@ int32_t	main( void )
 
 		Update_CH1( );
 		
+		if( (usRegInputBuf[4] == 0xFFFF) && ( usRegHoldingBuf[9] == 0xFFFF) )
+		{
+			usRegInputBuf[4] = 0x0000;
+		}
 		//	看门狗控制
 		//	ClearWDT();
 		IWDG_Clear();
