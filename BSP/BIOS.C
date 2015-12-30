@@ -690,6 +690,8 @@ void	HCBoxCool_OutCmd( uint16_t OutValue )		//	PB15(高电平有效)
 void	IWDG_Init( void )
 {
 	SET_BIT( RCC->APB1ENR, RCC_APB1ENR_WWDGEN );
+	IWDG->KR = 0X5555;
+	IWDG->PR = IWDG_PR_PR_1;
 	IWDG->KR = 0xCCCC;	
 }
 

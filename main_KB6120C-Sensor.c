@@ -393,27 +393,23 @@ int32_t	main( void )
 	//	初始化MODBUS协议栈
 	MODBUS_Init( 1 );
 	//	看门狗配置
-	//	InitWDT();
-	IWDG_Init();
-
+// 	IWDG_Init();
 	
 	for(;;)  
-	
 	{
 		//	活动计数器，表示系统通信正常。
 		++usRegInputBuf[0];
+		if( (usRegInputBuf[4] == 0xFFFF) && (usRegHoldingBuf[9] == 0xFFFF) )
+		{
+			usRegInputBuf[4] = 0x0000;
+		}
 		
 		Update_CH0( );
 
 		Update_CH1( );
-		
-		if( (usRegInputBuf[4] == 0xFFFF) && ( usRegHoldingBuf[9] == 0xFFFF) )
-		{
-			usRegInputBuf[4] = 0x0000;
-		}
+			
 		//	看门狗控制
-		//	ClearWDT();
-		IWDG_Clear();
+// 		IWDG_Clear();
 	}
 }
 
