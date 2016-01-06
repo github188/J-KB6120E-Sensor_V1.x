@@ -14,10 +14,10 @@
 
 static	FP32	_CV_NTC10K( uint16_t ADx )
 {
-#define	B	3380.f
-#define	K	273.15f
-#define	T0	25.0f
-#define	ADC_Max	4096.0f
+	#define	B	3380.f
+	#define	K	273.15f
+	#define	T0	25.0f
+	#define	ADC_Max	4096.0f
 
 	FP32	Tx;
 	

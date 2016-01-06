@@ -10,6 +10,28 @@
 *******************************************************************************/
 #include "BSP.H"
 
+#define		Read_ROM						0x33u
+#define		Match_ROM						0x55u
+#define		Skip_ROM						0xCCu
+#define		Search_ROM					0xF0u
+#define		Alarm_Search				0xECu
+#define		Write_Scratchpad		0x4Eu
+#define		Read_Scratchpad			0xBEu
+#define		Copy_Scratchpad			0x48u
+#define		Convert_T						0x44u
+#define		Recall_EEPROM				0xB8u
+#define		Read_Power_Supply		0xB4u
+#define		Config_Register			0x1Fu
+
+#define		Precision_09				0x10u
+#define		Precision_10				0x30u
+#define		Precision_11				0x50u
+#define		Precision_12				0x70u
+
+#define	TH_Value							0x7Fu
+#define	TL_Value							0x00u
+
+
 struct OW_DRV
 {
 	BOOL ( *Init )( void );
@@ -84,6 +106,32 @@ static	uint8_t  OW_Slot8( struct OW_DRV const * OW, uint8_t IOByte )
 }
 
 
+
+BOOL	DS18B20_Precision( struct OW_DRV const * OW, uint8_t  Precision )	// 精度转换	防止有些DS18B20出厂时未设置为12位精度
+{
+
+	if ( ! OW )	{  return	FALSE;	}
+
+	if ( ! OW_Init( OW ))    {	return	FALSE;	}
+	if ( ! OW_isReady( OW )) {	return	FALSE;	}
+	if ( ! OW_Reset( OW ))   {	return	FALSE;	}
+	
+	( void )OW_Slot8( OW, Skip_ROM );  // 
+	( void )OW_Slot8( OW, Write_Scratchpad );  //
+	
+	( void )OW_Slot8( OW, TH_Value );  //
+	( void )OW_Slot8( OW, TL_Value );  // 
+	( void )OW_Slot8( OW, Config_Register | Precision );  // 
+	
+	if ( ! OW_Reset( OW ))   {	return	FALSE;	}
+	
+	( void )OW_Slot8( OW, Skip_ROM );  // 
+	( void )OW_Slot8( OW, Copy_Scratchpad );  // 
+	
+	return TRUE;
+	
+}
+
 static	BOOL	DS18B20_Load( struct OW_DRV const * OW, uint8_t DS18B20_Buf[9] )
 {
 	static	uint8_t	const DallasCRC8[256] = 
@@ -115,8 +163,8 @@ static	BOOL	DS18B20_Load( struct OW_DRV const * OW, uint8_t DS18B20_Buf[9] )
 	if ( ! OW_isReady( OW )) {	return	FALSE;	}
 	if ( ! OW_Reset( OW ))   {	return	FALSE;	}
 
-	( void )OW_Slot8( OW, 0xCCu );  // Skip ROM Command
-	( void )OW_Slot8( OW, 0xBEu );  // Read Scrachpad Command
+	( void )OW_Slot8( OW, Skip_ROM );  				// Skip ROM Command
+	( void )OW_Slot8( OW, Read_Scratchpad );  // Read Scrachpad Command
 
 	CRC8 = 0u;
 	for ( i = 0u; i < 9u; ++i )
@@ -132,8 +180,8 @@ static	BOOL	DS18B20_Load( struct OW_DRV const * OW, uint8_t DS18B20_Buf[9] )
 
 	//	启动转换以备一下次读取
 	( void )OW_Reset( OW );
-	( void )OW_Slot8( OW, 0xCCu );	// Skip ROM Command
-	( void )OW_Slot8( OW, 0x44u );	// Temperature Convert Command
+	( void )OW_Slot8( OW, Skip_ROM );			// Skip ROM Command
+	( void )OW_Slot8( OW, Convert_T );		// Temperature Convert Command
 
 	return TRUE;
 }
@@ -150,7 +198,13 @@ static	BOOL	DS18B20_Read( struct OW_DRV const * OW, int16_t * pT16S )
 	*pT16S = (int16_t)( DS18B20_Buf [1] * 256 + DS18B20_Buf[0] );
 	return	TRUE;
 }
-
+void	DS18B20_Precision_Init( void )
+{
+	DS18B20_Precision( &DS18B20_Temp1, Precision_12 );
+	DS18B20_Precision( &DS18B20_Temp2, Precision_12 );
+	DS18B20_Precision( &DS18B20_Temp3, Precision_12 );
+	DS18B20_Precision( &DS18B20_Temp4, Precision_12 );
+}
 
 BOOL	DS18B20_1_Read( int16_t * pT16S )
 {

@@ -54,8 +54,8 @@ extern	BOOL	bus_i2c_shout( uint8_t OutByte );
 extern	uint8_t	bus_i2c_shin( enum I2C_AcknowlegeSet AcknowlegeSet );
 
 //	BIOS.C - SPI
-extern	uint8_t bus_SPI1xShift( uint8_t OutByte );
-extern	void	bus_SPI1xPortInit( void );
+extern	uint8_t bus_SPIxShift( uint8_t OutByte );
+extern	void	bus_SPIxPortInit( void );
 
 //	BIOS.C - GPIO
 extern	void	MB_485_Direct_Transmit( void );
@@ -98,6 +98,7 @@ extern	BOOL	DS18B20_1_Read( int16_t * pT16S );
 extern	BOOL	DS18B20_2_Read( int16_t * pT16S );
 extern	BOOL	DS18B20_3_Read( int16_t * pT16S );
 extern	BOOL	DS18B20_4_Read( int16_t * pT16S );
+extern	void	DS18B20_Precision_Init( void );
 //////	AD7705
 enum	enumCS7705
 {

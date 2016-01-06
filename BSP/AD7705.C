@@ -56,8 +56,8 @@
 #define FS_1_2		((uint8_t)0x06)		// Code =  77, 249.4@2.4576MHz
 #define FS_1_3		((uint8_t)0x07)		// Code =  38, 505.3@2.4576MHz
 ///////////////////////////////////////////////////////////////////
-#define	AD7705_Shift_In()		(uint8_t)bus_SPI1xShift(0xFFu)
-#define	AD7705_Shift_Out(_cout)	( void )bus_SPI1xShift(_cout)
+#define	AD7705_Shift_In()		(uint8_t)bus_SPIxShift(0xFFu)
+#define	AD7705_Shift_Out(_cout)	( void )bus_SPIxShift(_cout)
 
 ///////////////////////////////////////////////////////////////////
 // AD7705 访问控制接口
@@ -120,9 +120,10 @@ bool	Convert7705( enum enumCS7705 cs, uint8_t xs )
 	uint8_t	mode_readback;
 
 	Select7705( cs );
+	delay( 1u );
 	mode_readback = _Convert7705( mode_set, xs );
+	delay( 1u );
 	Select7705( CS7705_none );
-
 	if ( mode_set == mode_readback )
 	{
 		return	true;	//	工作正常
@@ -142,21 +143,23 @@ uint16_t	Readout7705( enum enumCS7705 cs, uint8_t xs )
 	{
 		uint8_t	ReadyState;
 		Select7705( cs );
+		delay( 1u );
 		AD7705_Shift_Out( RS_0 + READ + xs );
 		ReadyState = AD7705_Shift_In();
+		delay( 1u );
 		Select7705( CS7705_none );			//	DeSelect All
-
 		if ( 0x00u == ( ReadyState & DRDY ))
 		{	//	is DRDY# ?
 		uint8_t	ResultH, ResultL;
 
 		Select7705( cs );
+		delay( 1u );
 		AD7705_Shift_Out( RS_3 + READ + xs );	//	Read.
 		ResultH = AD7705_Shift_In();
 		ResultL = AD7705_Shift_In();
 		Result = ( ResultL + ( ResultH * 0x100u ));
-		Select7705( CS7705_none );			//	DeSelect All
-	
+		delay( 1u );
+		Select7705( CS7705_none );			//	DeSelect All	
 		break;	//	done.
 		 }
 
@@ -173,7 +176,7 @@ void	Initialize7705( void )
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
 		Select7705( i );
-
+		delay( 1u );
 		// Synchronization.
 		AD7705_Shift_Out( 0xFFu );
 		AD7705_Shift_Out( 0xFFu );
@@ -185,19 +188,19 @@ void	Initialize7705( void )
 		
 		// 启动指定通道的自校准转换
 		_Convert7705( MD_1 + Cfg7705[i][1], 1u );
-
+		delay( 1u );
 		Select7705( CS7705_none );
-	}
 
+	}
 	delay( 220u );
 
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
 		Select7705( i );
-
+		delay( 1u );
 		// 启动指定通道的自校准转换
 		_Convert7705( MD_1 + Cfg7705[i][0], 0u );
-
+		delay( 1u );
 		Select7705( CS7705_none );
 	}
 

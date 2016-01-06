@@ -382,32 +382,89 @@ uint8_t	bus_i2c_shin( enum I2C_AcknowlegeSet AcknowlegeSet )
 /**
  *	访问SPI总线
  */
-void	bus_SPI1xPortInit( void )
+// void	bus_SPI1xPortInit( void )
+// {
+// 	/* Initialize and enable the SSP Interface module. */
+// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN );
+// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_SPI1EN );
+// 	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
+// 	SET_BIT( AFIO->MAPR, AFIO_MAPR_SPI1_REMAP );
+
+// 	/* SPI1_SCK, SPI1_MISO, SPI1_MOSI are SPI pins. */
+//  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00B4B000u );
+
+// 	/* Enable SPI in Master Mode, CPOL=1, CPHA=1. */
+// 	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR |
+// 				SPI_CR1_MSTR | SPI_CR1_CPHA | SPI_CR1_CPOL;
+// 	SPI1->CR2 = 0x0000u;
+// }
+
+// uint8_t bus_SPI1xShift( uint8_t OutByte )
+// {
+// 	uint8_t	inByte;
+// 	
+// 	SPI1->DR = OutByte;	 
+// 	while ( ! ( SPI1->SR & SPI_SR_RXNE )){}
+// 	inByte = SPI1->DR;
+
+// 	return	inByte;
+// }
+/********************************** 功能说明 ***********************************
+*	访问 SPI 总线( SPI1x )
+*******************************************************************************/
+// #ifdef	SimulationSPI
+#define	PinBB( _Port, _Num )	(*(__IO int32_t *)(PERIPH_BB_BASE + ((uint32_t)&(_Port) - PERIPH_BASE) * 32u + (_Num) * 4u ))
+#define	Pin_SPIxSCK			PinBB( GPIOB->ODR,  3U )
+#define	Pin_SPIxMISO		PinBB( GPIOB->IDR,  4U )
+#define	Pin_SPIxMOSI		PinBB( GPIOB->ODR,  5U )
+
+uint8_t bus_SPIxShift( uint8_t OutByte )
 {
-	/* Initialize and enable the SSP Interface module. */
-	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN );
-	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_SPI1EN );
-	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
-	SET_BIT( AFIO->MAPR, AFIO_MAPR_SPI1_REMAP );
+	uint8_t i;
+	
+	for ( i = 8u; i != 0u; --i )
+	{
+		delay_us( 30 );
+		if ( OutByte & 0x80u )
+		{
+			Pin_SPIxMOSI = 1;
+		}
+		else
+		{
+			Pin_SPIxMOSI = 0;
+		}
 
-	/* SPI1_SCK, SPI1_MISO, SPI1_MOSI are SPI pins. */
- 	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00B4B000u );
+		delay_us( 30 );
+		Pin_SPIxSCK = 0;
 
-	/* Enable SPI in Master Mode, CPOL=1, CPHA=1. */
-	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR |
-				SPI_CR1_MSTR | SPI_CR1_CPHA | SPI_CR1_CPOL;
-	SPI1->CR2 = 0x0000u;
+		delay_us( 30 );
+
+		OutByte <<= 1;
+		if ( Pin_SPIxMISO )
+		{
+			OutByte |= 0x01u;
+		}
+		else
+		{
+			OutByte &= 0xFEu;
+		}
+
+		delay_us( 30 );
+		Pin_SPIxSCK = 1;
+	}
+	
+	return	OutByte;
 }
 
-uint8_t bus_SPI1xShift( uint8_t OutByte )
-{
-	uint8_t	inByte;
-	
-	SPI1->DR = OutByte;	 
-	while ( ! ( SPI1->SR & SPI_SR_RXNE )){}
-	inByte = SPI1->DR;
 
-	return	inByte;
+void	bus_SPIxPortInit( void )
+{
+	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN );
+ 	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
+
+ 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPBEN );
+	Pin_SPIxSCK = 1;
+ 	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00343000u );
 }
 
 /**
@@ -712,7 +769,7 @@ void	IWDG_Clear( void )
 void	MB_485_Direct_Transmit( void )
 {
 //	GPIOB->BSRR = ( 1 << 2 );
-	MonitorTickReset();
+// 	MonitorTickReset();
 }
 
 void	MB_485_Direct_Receive( void )
@@ -733,7 +790,7 @@ void	Select7705( uint8_t C_SEL )
 	case CS7705_3:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 |(GPIO_BSRR_BR11)| GPIO_BSRR_BS9 | GPIO_BSRR_BS10;		break;	//	对应位复位		日均B
 	case CS7705_4:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 | GPIO_BSRR_BS11 |(GPIO_BSRR_BR9)| GPIO_BSRR_BS10;		break;	//	对应位复位		时均D
 	case CS7705_5:	GPIOB->BSRR =	GPIO_BSRR_BS8 | GPIO_BSRR_BS12 | GPIO_BSRR_BS11 | GPIO_BSRR_BS9 |(GPIO_BSRR_BR10);	break;	//	对应位复位		时均C	
-//case CS7705_all:	GPIOA->BSRR = (GPIO_BSRR_BR2)|(GPIO_BSRR_BR3)|(GPIO_BSRR_BR4);	break;	//	全部复位
+//case CS7705_all:	break;	//	全部复位
 	default:
 	case CS7705_none: GPIOB->BSRR = GPIO_BSRR_BS8| GPIO_BSRR_BS9 | GPIO_BSRR_BS10| GPIO_BSRR_BS11 | GPIO_BSRR_BS12;	break;	//	全部置位
 	}
@@ -814,7 +871,7 @@ void	SysTick_Handler( void )
 	static	uint32_t		HCBoxtick;
 	uint32_t		tmp = m_tick + 1;
 	
-	if ( ( tmp != 0u ) )	//	未溢出
+	if ( tmp != 0u )	//	未溢出
 	{
 		m_tick = tmp;
 	}
@@ -872,7 +929,7 @@ void	BIOS_Init( void )
 	TIM2_Configure();		//	粉尘泵
 	TIM3_Configure();		//	小流量
 	TIM15_Configure();	//	恒温箱
-	bus_SPI1xPortInit();//	Modbus
+	bus_SPIxPortInit();//	Modbus
 	
 	MonitorTickInit();	//	泵保护
 }

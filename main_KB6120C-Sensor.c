@@ -116,7 +116,7 @@ static	void	Slice0_Exec( void )
 	bool	Protect_EN;
 	bool	Output_EN;
 	
-	Protect_EN = MonitorTickTimeout();	//	监视定时器超时，保护性的关闭所有输出
+	Protect_EN = MonitorTickTimeout();	//0;//	监视定时器超时，保护性的关闭所有输出
 	HCBoxControl();
 	Output_EN = Read_BitN( ucRegCoilsBuf, 10 ) |
 							Read_BitN( ucRegCoilsBuf, 20 ) | 
@@ -336,14 +336,17 @@ static void KB6120E_ConfigSelect( void )
 	uint8_t		isExist7705[CS7705_Max];
 	uint8_t	i;
 	int16_t		Temp16S;
-
+	
+	DS18B20_Precision_Init();
+	delay( 750 ); 
 	DS18B20_1_Read( &Temp16S );		//	读18B20, 跳过 0x0550 环境温度
 	if( DS18B20_2_Read( &Temp16S	))	
 		Set_BitN( ucRegDiscBuf, 8 );	//	加热器温度
 	DS18B20_3_Read( &Temp16S );		//	计前温度
 	if( DS18B20_4_Read( &Temp16S ) )	
 		Set_BitN( ucRegDiscBuf, 5 );	//	恒温箱温度	
-	Initialize7705( );						//	计压差压初始化
+		
+	Initialize7705();						//	计压差压初始化
 
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
