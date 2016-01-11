@@ -382,90 +382,93 @@ uint8_t	bus_i2c_shin( enum I2C_AcknowlegeSet AcknowlegeSet )
 /**
  *	访问SPI总线
  */
-// void	bus_SPI1xPortInit( void )
-// {
-// 	/* Initialize and enable the SSP Interface module. */
-// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN );
-// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_SPI1EN );
-// 	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
-// 	SET_BIT( AFIO->MAPR, AFIO_MAPR_SPI1_REMAP );
+void	bus_SPIxPortInit( void )
+{
+	/* Initialize and enable the SSP Interface module. */
+	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN );
+	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_SPI1EN );
+	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
+	SET_BIT( AFIO->MAPR, AFIO_MAPR_SPI1_REMAP );
 
-// 	/* SPI1_SCK, SPI1_MISO, SPI1_MOSI are SPI pins. */
-//  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00B4B000u );
+	/* SPI1_SCK, SPI1_MISO, SPI1_MOSI are SPI pins. */
+ 	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00B4B000u );
 
-// 	/* Enable SPI in Master Mode, CPOL=1, CPHA=1. */
-// 	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR |
-// 				SPI_CR1_MSTR | SPI_CR1_CPHA | SPI_CR1_CPOL;
-// 	SPI1->CR2 = 0x0000u;
-// }
-
-// uint8_t bus_SPI1xShift( uint8_t OutByte )
-// {
-// 	uint8_t	inByte;
-// 	
-// 	SPI1->DR = OutByte;	 
-// 	while ( ! ( SPI1->SR & SPI_SR_RXNE )){}
-// 	inByte = SPI1->DR;
-
-// 	return	inByte;
-// }
-/********************************** 功能说明 ***********************************
-*	访问 SPI 总线( SPI1x )
-*******************************************************************************/
-// #ifdef	SimulationSPI
-#define	PinBB( _Port, _Num )	(*(__IO int32_t *)(PERIPH_BB_BASE + ((uint32_t)&(_Port) - PERIPH_BASE) * 32u + (_Num) * 4u ))
-#define	Pin_SPIxSCK			PinBB( GPIOB->ODR,  3U )
-#define	Pin_SPIxMISO		PinBB( GPIOB->IDR,  4U )
-#define	Pin_SPIxMOSI		PinBB( GPIOB->ODR,  5U )
+	/* Enable SPI in Master Mode, CPOL=1, CPHA=1. */
+	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR_0 |//
+				SPI_CR1_MSTR | SPI_CR1_CPHA | SPI_CR1_CPOL;
+	SPI1->CR2 = 0x0000u;
+}
 
 uint8_t bus_SPIxShift( uint8_t OutByte )
 {
-	uint8_t i;
+	uint8_t	inByte;
 	
-	for ( i = 8u; i != 0u; --i )
-	{
-		delay_us( 30 );
-		if ( OutByte & 0x80u )
-		{
-			Pin_SPIxMOSI = 1;
-		}
-		else
-		{
-			Pin_SPIxMOSI = 0;
-		}
+	SPI1->DR = OutByte;	 
+	while ( ! ( SPI1->SR & SPI_SR_RXNE )){}
+	inByte = SPI1->DR;
 
-		delay_us( 30 );
-		Pin_SPIxSCK = 0;
-
-		delay_us( 30 );
-
-		OutByte <<= 1;
-		if ( Pin_SPIxMISO )
-		{
-			OutByte |= 0x01u;
-		}
-		else
-		{
-			OutByte &= 0xFEu;
-		}
-
-		delay_us( 30 );
-		Pin_SPIxSCK = 1;
-	}
-	
-	return	OutByte;
+	return	inByte;
 }
+/********************************** 功能说明 ***********************************
+*	访问 SPI 总线( SPI1x )
+*******************************************************************************/
+// // #ifdef	SimulationSPI/*TODEL*/	
+// #define	PinBB( _Port, _Num )	(*(__IO int32_t *)(PERIPH_BB_BASE + ((uint32_t)&(_Port) - PERIPH_BASE) * 32u + (_Num) * 4u ))
+// #define	Pin_SPIxSCK			PinBB( GPIOB->ODR,  3U )
+// #define	Pin_SPIxMISO		PinBB( GPIOB->IDR,  4U )
+// #define	Pin_SPIxMOSI		PinBB( GPIOB->ODR,  5U )
+
+// uint8_t bus_SPIxShift( uint8_t OutByte )
+// {
+// 	uint8_t i;
+// 	
+// 	for ( i = 8u; i != 0u; --i )
+// 	{
+// 		
+// 		delay_us( 300 );
+// 		if ( OutByte & 0x80u )
+// 		{
+// 			Pin_SPIxMOSI = 1;
+// 		}
+// 		else
+// 		{
+// 			Pin_SPIxMOSI = 0;
+// 		}
+
+// 		delay_us( 300 );
+// 		Pin_SPIxSCK = 0;
+
+// 		delay_us( 300 );
+
+// 		OutByte <<= 1;
+// 		if ( Pin_SPIxMISO )
+// 		{
+// 			OutByte |= 0x01u;
+// 		}
+// 		else
+// 		{
+// 			OutByte &= 0xFEu;
+// 		}
+
+// 		delay_us( 300 );
+// 		Pin_SPIxSCK = 1;
+// 	}
+// /*TODEL*/		
+// Pin_SPIxMOSI = 0;	//1
+
+// 	return	OutByte;
+// }
 
 
-void	bus_SPIxPortInit( void )
-{
-	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN );
- 	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
+// void	bus_SPIxPortInit( void )
+// {
+// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN );
+//  	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
 
- 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPBEN );
-	Pin_SPIxSCK = 1;
- 	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00343000u );
-}
+//  	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPBEN );
+// 	Pin_SPIxSCK = 1;
+//  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00343000u );
+// }
 
 /**
  *	访问 STM32 ADC
@@ -512,25 +515,25 @@ static	void	STM32_ADC_Init( void )
 	#define	ADC1_SMPR_WIDTH		3	// 每组设置3位
 
 	ADC1->SMPR2 =	(( ADC1_SMP_239p5_C ) << ( ADC1_SMPR_WIDTH * (	0 - ADC1_SMPR2_BASE )))	//	通道0
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	1 - ADC1_SMPR2_BASE )))	//	通道1
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	2 - ADC1_SMPR2_BASE )))	//	通道2
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	3 - ADC1_SMPR2_BASE )))	//	通道3
-				|	(( ADC1_SMP_239p5_C ) << ( ADC1_SMPR_WIDTH * (	4 - ADC1_SMPR2_BASE )))	//	通道4
-				|	(( ADC1_SMP_239p5_C ) << ( ADC1_SMPR_WIDTH * (	5 - ADC1_SMPR2_BASE )))	//	通道5
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	6 - ADC1_SMPR2_BASE )))	//	通道6
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	7 - ADC1_SMPR2_BASE )))	//	通道7
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	8 - ADC1_SMPR2_BASE )))	//	通道8
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	9 - ADC1_SMPR2_BASE )))	//	通道9
-				;
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	1 - ADC1_SMPR2_BASE )))	//	通道1
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	2 - ADC1_SMPR2_BASE )))	//	通道2
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	3 - ADC1_SMPR2_BASE )))	//	通道3
+							|	(( ADC1_SMP_239p5_C ) << ( ADC1_SMPR_WIDTH * (	4 - ADC1_SMPR2_BASE )))	//	通道4
+							|	(( ADC1_SMP_239p5_C ) << ( ADC1_SMPR_WIDTH * (	5 - ADC1_SMPR2_BASE )))	//	通道5
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	6 - ADC1_SMPR2_BASE )))	//	通道6
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	7 - ADC1_SMPR2_BASE )))	//	通道7
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	8 - ADC1_SMPR2_BASE )))	//	通道8
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * (	9 - ADC1_SMPR2_BASE )))	//	通道9
+							;
 	ADC1->SMPR1 =	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 10 - ADC1_SMPR1_BASE )))	//	通道10
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 11 - ADC1_SMPR1_BASE )))	//	通道11
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 12 - ADC1_SMPR1_BASE )))	//	通道12
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 13 - ADC1_SMPR1_BASE )))	//	通道13
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 14 - ADC1_SMPR1_BASE )))	//	通道14
-				|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 15 - ADC1_SMPR1_BASE )))	//	通道15
-				|	(( ADC1_SMP_41p5_C	) << ( ADC1_SMPR_WIDTH * ( 16 - ADC1_SMPR1_BASE )))	//	通道16(内部温度)
-				|	(( ADC1_SMP_41p5_C	) << ( ADC1_SMPR_WIDTH * ( 17 - ADC1_SMPR1_BASE )))	//	通道17(内部基准)
-				;
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 11 - ADC1_SMPR1_BASE )))	//	通道11
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 12 - ADC1_SMPR1_BASE )))	//	通道12
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 13 - ADC1_SMPR1_BASE )))	//	通道13
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 14 - ADC1_SMPR1_BASE )))	//	通道14
+							|	(( ADC1_SMP_1p5_C	 ) << ( ADC1_SMPR_WIDTH * ( 15 - ADC1_SMPR1_BASE )))	//	通道15
+							|	(( ADC1_SMP_41p5_C	) << ( ADC1_SMPR_WIDTH * ( 16 - ADC1_SMPR1_BASE )))	//	通道16(内部温度)
+							|	(( ADC1_SMP_41p5_C	) << ( ADC1_SMPR_WIDTH * ( 17 - ADC1_SMPR1_BASE )))	//	通道17(内部基准)
+							;
 
 	//	配置规则转换序列（序列编号从1开始）
 	#define	ADC1_SQR1_BASE		13// R1 起始编号
@@ -539,25 +542,25 @@ static	void	STM32_ADC_Init( void )
 	#define	ADC1_SQR_WIDTH		5	// 每组设置5位
 
 	ADC1->SQR3	=	(( 17 )	<< ( ADC1_SQR_WIDTH * (	1 - ADC1_SQR3_BASE )))	//	序列1
-				|	(( 16 )	<< ( ADC1_SQR_WIDTH * (	2 - ADC1_SQR3_BASE )))	//	序列2
-				|	((	4 ) << ( ADC1_SQR_WIDTH * (	3 - ADC1_SQR3_BASE )))	//	序列3
-				|	((	5 ) << ( ADC1_SQR_WIDTH * (	4 - ADC1_SQR3_BASE )))	//	序列4
-				|	((	0 ) << ( ADC1_SQR_WIDTH * (	5 - ADC1_SQR3_BASE )))	//	序列5
-				|	((	0 ) << ( ADC1_SQR_WIDTH * (	6 - ADC1_SQR3_BASE )))	//	序列6
-				;
+							|	(( 16 )	<< ( ADC1_SQR_WIDTH * (	2 - ADC1_SQR3_BASE )))	//	序列2
+							|	((	4 ) << ( ADC1_SQR_WIDTH * (	3 - ADC1_SQR3_BASE )))	//	序列3
+							|	((	5 ) << ( ADC1_SQR_WIDTH * (	4 - ADC1_SQR3_BASE )))	//	序列4
+							|	((	0 ) << ( ADC1_SQR_WIDTH * (	5 - ADC1_SQR3_BASE )))	//	序列5
+							|	((	0 ) << ( ADC1_SQR_WIDTH * (	6 - ADC1_SQR3_BASE )))	//	序列6
+							;
 	ADC1->SQR2	=	((	0 ) << ( ADC1_SQR_WIDTH * (	7 - ADC1_SQR2_BASE )))	//	序列7
-				|	((	0 ) << ( ADC1_SQR_WIDTH * (	8 - ADC1_SQR2_BASE )))	//	序列8
-				|	((	0 ) << ( ADC1_SQR_WIDTH * (	9 - ADC1_SQR2_BASE )))	//	序列9
-				|	((	0 ) << ( ADC1_SQR_WIDTH * ( 10 - ADC1_SQR2_BASE )))	//	序列10
-				|	((	0 ) << ( ADC1_SQR_WIDTH * ( 11 - ADC1_SQR2_BASE )))	//	序列11
-				|	((	0 ) << ( ADC1_SQR_WIDTH * ( 12 - ADC1_SQR2_BASE )))	//	序列12
-				;
+							|	((	0 ) << ( ADC1_SQR_WIDTH * (	8 - ADC1_SQR2_BASE )))	//	序列8
+							|	((	0 ) << ( ADC1_SQR_WIDTH * (	9 - ADC1_SQR2_BASE )))	//	序列9
+							|	((	0 ) << ( ADC1_SQR_WIDTH * ( 10 - ADC1_SQR2_BASE )))	//	序列10
+							|	((	0 ) << ( ADC1_SQR_WIDTH * ( 11 - ADC1_SQR2_BASE )))	//	序列11
+							|	((	0 ) << ( ADC1_SQR_WIDTH * ( 12 - ADC1_SQR2_BASE )))	//	序列12
+							;
 	ADC1->SQR1	=	((	0 ) << ( ADC1_SQR_WIDTH * ( 13 - ADC1_SQR1_BASE )))	//	序列13
-				|	((	0 ) << ( ADC1_SQR_WIDTH * ( 14 - ADC1_SQR1_BASE )))	//	序列14
-				|	((	0 ) << ( ADC1_SQR_WIDTH * ( 15 - ADC1_SQR1_BASE )))	//	序列15
-				|	((	0 ) << ( ADC1_SQR_WIDTH * ( 16 - ADC1_SQR1_BASE )))	//	序列16
-				|	((4 -1) << ( ADC1_SQR_WIDTH * ( 17 - ADC1_SQR1_BASE )))	//	长度(0表示1次)
-				;
+							|	((	0 ) << ( ADC1_SQR_WIDTH * ( 14 - ADC1_SQR1_BASE )))	//	序列14
+							|	((	0 ) << ( ADC1_SQR_WIDTH * ( 15 - ADC1_SQR1_BASE )))	//	序列15
+							|	((	0 ) << ( ADC1_SQR_WIDTH * ( 16 - ADC1_SQR1_BASE )))	//	序列16
+							|	((4 -1) << ( ADC1_SQR_WIDTH * ( 17 - ADC1_SQR1_BASE )))	//	长度(0表示1次)
+							;
 
 	delay_us( 1u );
 	SET_BIT( ADC1->CR2, ADC_CR2_ADON );							//	Enable ADC1
@@ -595,8 +598,9 @@ static	void	TIM1_Init( void )
 				| TIM_SMCR_ETF_3
 				| TIM_SMCR_ETPS_0
 				;
-	GPIOA->CRH&=0XFFF0FFFF; //PA12 清除之前设置   
-	GPIOA->CRH|=0X00080000; //PA12 上拉下拉输入    
+	MODIFY_REG( GPIOA->CRH, 0x000F0000u, 0x00080000u );
+// 	GPIOA->CRH&=0XFFF0FFFF; //PA12 清除之前设置   
+// 	GPIOA->CRH|=0X00080000; //PA12 上拉下拉输入    
 // 	GPIOA->ODR&=0XEFFF;	
 	/* Enable the TIM Counter */
 	SET_BIT( TIMx->SMCR, TIM_SMCR_ECE );
@@ -638,8 +642,10 @@ static	void	TIM2_Configure( void )
 	TIMx->CR1	= TIM_CR1_CEN;
 
 	//	输出配置
-	TIMx->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
-	TIMx->CCER	= TIM_CCER_CC1E;
+	TIMx->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1
+							;
+	TIMx->CCER	= TIM_CCER_CC1E
+							;
 
 	//	配置端口
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
@@ -660,14 +666,16 @@ static	void	TIM3_Configure( void )
 
 	//	输出配置
 	TIMx->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1
-				| TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
+							| TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1
+							;
 	TIMx->CCMR2 = TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1
-				| TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1;
+							| TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1
+							;
 	TIMx->CCER	= TIM_CCER_CC1E | TIM_CCER_CC1P
-				| TIM_CCER_CC2E | TIM_CCER_CC2P |
-								TIM_CCER_CC3E | TIM_CCER_CC3P
-				| TIM_CCER_CC4E | TIM_CCER_CC4P;
-
+							| TIM_CCER_CC2E | TIM_CCER_CC2P 
+							|	TIM_CCER_CC3E | TIM_CCER_CC3P
+							| TIM_CCER_CC4E | TIM_CCER_CC4P
+							;
 
 	//	配置端口
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
@@ -689,10 +697,11 @@ void	TIM15_Configure( void )
 
 	//	输出配置
 	TIMx->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1
-				| TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
+							| TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1
+							;
 	TIMx->CCER	= TIM_CCER_CC1E// | TIM_CCER_CC1P
-				| TIM_CCER_CC2E// | TIM_CCER_CC2P
-				;
+							| TIM_CCER_CC2E// | TIM_CCER_CC2P
+							;
 
 	//	配置端口
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN );
@@ -769,7 +778,7 @@ void	IWDG_Clear( void )
 void	MB_485_Direct_Transmit( void )
 {
 //	GPIOB->BSRR = ( 1 << 2 );
-// 	MonitorTickReset();
+	MonitorTickReset();
 }
 
 void	MB_485_Direct_Receive( void )

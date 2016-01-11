@@ -46,7 +46,7 @@
 ///////////////////////////////////////////////////////////////////
 #define CLKDIS		((uint8_t)0x10)		// Master Clock Disable Bit
 #define CLKDIV		((uint8_t)0x08)		// Clock Divider Bit
-#define CLK			((uint8_t)0x04)		// Clock Bit.
+#define CLK				((uint8_t)0x04)		// Clock Bit.
 #define FS_0_0		((uint8_t)0x00)		// Code = 391, 19.98@1MHz
 #define FS_0_1		((uint8_t)0x01)		// Code = 312, 25.04@1MHz
 #define FS_0_2		((uint8_t)0x02)		// Code =  78, 100.2@1MHz
@@ -56,7 +56,7 @@
 #define FS_1_2		((uint8_t)0x06)		// Code =  77, 249.4@2.4576MHz
 #define FS_1_3		((uint8_t)0x07)		// Code =  38, 505.3@2.4576MHz
 ///////////////////////////////////////////////////////////////////
-#define	AD7705_Shift_In()		(uint8_t)bus_SPIxShift(0xFFu)
+#define	AD7705_Shift_In()		(uint8_t)bus_SPIxShift(0xFFu)/*TODEL*/	
 #define	AD7705_Shift_Out(_cout)	( void )bus_SPIxShift(_cout)
 
 ///////////////////////////////////////////////////////////////////
@@ -121,9 +121,9 @@ bool	Convert7705( enum enumCS7705 cs, uint8_t xs )
 
 	Select7705( cs );
 	delay( 1u );
-	mode_readback = _Convert7705( mode_set, xs );
-	delay( 1u );
+	mode_readback = _Convert7705( mode_set, xs );	
 	Select7705( CS7705_none );
+	delay( 1u );
 	if ( mode_set == mode_readback )
 	{
 		return	true;	//	工作正常
@@ -142,28 +142,27 @@ uint16_t	Readout7705( enum enumCS7705 cs, uint8_t xs )
 	for ( iRetry = 20u; iRetry != 0u; --iRetry )
 	{
 		uint8_t	ReadyState;
+		
 		Select7705( cs );
 		delay( 1u );
 		AD7705_Shift_Out( RS_0 + READ + xs );
 		ReadyState = AD7705_Shift_In();
-		delay( 1u );
-		Select7705( CS7705_none );			//	DeSelect All
+
 		if ( 0x00u == ( ReadyState & DRDY ))
 		{	//	is DRDY# ?
 		uint8_t	ResultH, ResultL;
 
-		Select7705( cs );
-		delay( 1u );
 		AD7705_Shift_Out( RS_3 + READ + xs );	//	Read.
 		ResultH = AD7705_Shift_In();
 		ResultL = AD7705_Shift_In();
 		Result = ( ResultL + ( ResultH * 0x100u ));
-		delay( 1u );
+		
 		Select7705( CS7705_none );			//	DeSelect All	
+		delay( 1u );
 		break;	//	done.
 		 }
-
-			delay( 10u );
+		Select7705( CS7705_none );			//	DeSelect All	
+		delay( 20u );
 	}
 
 	return	Result;
@@ -207,4 +206,115 @@ void	Initialize7705( void )
 	delay( 220u );
 }
 
+
+
+
+void	ConfigureRead( uint8_t *buf, enum enumCS7705 cs, uint8_t xs )
+{
+
+	uint8_t		iRetry;
+	buf[0] = buf[3] = buf[5] = 0x00u;
+	for ( iRetry = 20u; iRetry != 0u; --iRetry )
+	{
+		uint8_t	ReadyState;
+		Select7705( cs );
+		delay( 1u );
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+		
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			AD7705_Shift_Out( RS_1 + READ + xs );
+			buf[1] = AD7705_Shift_In();	
+			Select7705( CS7705_none );			//	DeSelect All	
+			delay( 1u );
+			break;	//	done.
+		}
+		Select7705( CS7705_none );			//	DeSelect All
+		delay( 20u );
+	}
+	for ( iRetry = 20u; iRetry != 0u; --iRetry )
+	{
+		uint8_t	ReadyState;
+		Select7705( cs );
+		delay( 1u );
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			AD7705_Shift_Out( RS_2 + READ + xs );
+			buf[2] = AD7705_Shift_In();
+			Select7705( CS7705_none );			//	DeSelect All	
+			delay( 1u );
+			break;	//	done.
+		}
+		Select7705( CS7705_none );			//	DeSelect All
+		delay( 20u );
+	}
+	for ( iRetry = 20u; iRetry != 0u; --iRetry )
+	{
+		uint8_t	ReadyState;
+		Select7705( cs );
+		delay( 1u );
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			AD7705_Shift_Out( RS_4 + READ + xs );
+			buf[4] = AD7705_Shift_In();	
+			Select7705( CS7705_none );			//	DeSelect All	
+			delay( 1u );
+			break;	//	done.
+		}
+		Select7705( CS7705_none );			//	DeSelect All
+		delay( 20u );
+	}
+	for ( iRetry = 20u; iRetry != 0u; --iRetry )
+	{
+		uint8_t	ReadyState;
+		Select7705( cs );
+		delay( 1u );
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			AD7705_Shift_Out( RS_6 + READ + xs );
+			buf[6] = AD7705_Shift_In();
+			buf[7] = AD7705_Shift_In();
+			buf[8] = AD7705_Shift_In();
+
+			Select7705( CS7705_none );			//	DeSelect All	
+			delay( 1u );
+			break;	//	done.
+		}
+		Select7705( CS7705_none );			//	DeSelect All
+		delay( 20u );
+	}
+	for ( iRetry = 20u; iRetry != 0u; --iRetry )
+	{
+		uint8_t	ReadyState;
+		Select7705( cs );
+		delay( 1u );
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			AD7705_Shift_Out( RS_7 + READ + xs );
+			buf[11] = AD7705_Shift_In();
+			buf[12] = AD7705_Shift_In();
+			buf[13] = AD7705_Shift_In();
+	
+			Select7705( CS7705_none );			//	DeSelect All	
+			delay( 1u );
+			break;	//	done.
+		}
+		Select7705( CS7705_none );			//	DeSelect All
+		delay( 20u );
+	}
+
+}
 /********  (C) COPYRIGHT 2015 青岛金仕达电子科技有限公司  **** End Of File ****/

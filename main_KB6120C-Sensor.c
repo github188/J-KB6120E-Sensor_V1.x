@@ -240,7 +240,9 @@ static	void	Slice2_Exec( void )
 	
 	
 }
-
+/*TODEL*/
+// uint8_t	Setbuf0[CS7705_Max][15] ={0};
+// uint8_t	Setbuf1[CS7705_Max][15] ={0};
 ///////////////////////////////////////////////////
 //	转换/读取 AD7705 通道 CH0
 ///////////////////////////////////////////////////
@@ -270,10 +272,13 @@ void	Update_CH0( void )
 			if ( isExist7705[i] )
 			{
 				Sum7705_CH0[i] += Readout7705 ((enum enumCS7705)i, 0u );
+// 				if( usRegHoldingBuf[13] == 0x56AB )/*TODEL*/	
+// 					ConfigureRead( Setbuf0[(enum enumCS7705)i], (enum enumCS7705)i, 0u );
 			}
 		}
 	}
-	
+
+
 	//	通道 CH0 的结果连续多次采样的平均值
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
@@ -320,7 +325,8 @@ void	Update_CH1( void )
 				Sum7705_CH1[i][1] = Sum7705_CH1[i][2];
 				Sum7705_CH1[i][2] = Sum7705_CH1[i][3];
 				Sum7705_CH1[i][3] = Readout7705 ((enum enumCS7705)i, 1u );
-				
+// 				if( usRegHoldingBuf[13] == 0x56AB )/*TODEL*/	
+// 					ConfigureRead( Setbuf1[(enum enumCS7705)i], (enum enumCS7705)i, 1u );
 				mean = ((uint32_t)Sum7705_CH1[i][0] + Sum7705_CH1[i][1] + Sum7705_CH1[i][2] + Sum7705_CH1[i][3] ) / 4u;
 
 				usRegInputBuf[16 + ( i * 5 )] = mean;	//	计前压力
@@ -346,7 +352,7 @@ static void KB6120E_ConfigSelect( void )
 	if( DS18B20_4_Read( &Temp16S ) )	
 		Set_BitN( ucRegDiscBuf, 5 );	//	恒温箱温度	
 		
-	Initialize7705();						//	计压差压初始化
+	Initialize7705();						//	计压差压初始化		自校准
 
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
@@ -388,7 +394,7 @@ int32_t	main( void )
 		ucRegCoilsBuf[i] = 0u;
 		ucRegDiscBuf[i] = 0u;
 	}
-	usRegInputBuf[4] = 0xFFFF;	
+// 	usRegInputBuf[4] = 0xFFFF;	/*TODEL*/	
 
 	//	仪器自动配置
 	KB6120E_ConfigSelect();
@@ -402,15 +408,28 @@ int32_t	main( void )
 	{
 		//	活动计数器，表示系统通信正常。
 		++usRegInputBuf[0];
-		if( (usRegInputBuf[4] == 0xFFFF) && (usRegHoldingBuf[9] == 0xFFFF) )
-		{
-			usRegInputBuf[4] = 0x0000;
-		}
-		
+// /*TODEL*/			
+// 		if( (usRegInputBuf[4] == 0xFFFF) && (usRegHoldingBuf[9] == 0xFFFF) )/*TODEL*/	
+// 		{
+// 			usRegInputBuf[4] = 0x0000;
+// 		}
+// 	
+// 		if( usRegHoldingBuf[12] )
+// 		{
+// 			for( i = 45; i < 60; i++ )
+// 			{
+// 				usRegInputBuf[i] = Setbuf0[usRegHoldingBuf[12] - 1][i-45];
+// 			}
+// 			for( i = 60; i < 75; i++ )
+// 			{
+// 				usRegInputBuf[i] = Setbuf1[usRegHoldingBuf[12] - 1][i-60];
+// 			}
+// 		}
+
 		Update_CH0( );
 
 		Update_CH1( );
-			
+
 		//	看门狗控制
 // 		IWDG_Clear();
 	}

@@ -214,6 +214,9 @@ static	void	HCBox_Heat( void )
 	FP32	Kp = 10.0f / 128.0f;//0.0390625f;			//  5/128		//	*2
 	FP32	Ki = ( Kp / 240.0f );	//320.0f 	160.0f 	//	10.0f 
 	FP32	Kd = ( Kp * 75.0f );	//80.0f	80.0f		//	30.0
+// // 	FP32	Kp = 32.0f / 128.0f;//0.0390625f;			//  5/128		//	*2
+// // 	FP32	Ki = ( Kp / 300.0f );	//320.0f 	160.0f 	//	10.0f 
+// // 	FP32	Kd = ( Kp * 6.0f );	//80.0f	80.0f		//	30.0
 
 //	const	FP32	Kp = 0.2;
 //	const	FP32	Ki = ( Kp / 100.0f );
@@ -312,7 +315,7 @@ static	uint32_t HCBoxCount = 0;
 
 void	HCBoxControl( void )
 {   
-	FP32	EK;
+/**/	FP32	EK;
 
 	if( HCBoxFlag )
 	{
@@ -395,7 +398,9 @@ void	HCBoxControl( void )
 		{	
 			HCBox_Wait();
 		}
-	}	
+	}
+//	
+
 }
 
 
