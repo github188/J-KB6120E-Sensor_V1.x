@@ -55,8 +55,8 @@
 #define FS_1_1		((uint8_t)0x05)		// Code = 320, 60.0 @2.4576MHz
 #define FS_1_2		((uint8_t)0x06)		// Code =  77, 249.4@2.4576MHz
 #define FS_1_3		((uint8_t)0x07)		// Code =  38, 505.3@2.4576MHz
-///////////////////////////////////////////////////////////////////
-#define	AD7705_Shift_In()		(uint8_t)bus_SPIxShift(0xFFu)/*TODEL*/	
+///////////////////////////////////////////////////////////////////xFFu
+#define	AD7705_Shift_In()		(uint8_t)bus_SPIxShift(0)/*TODEL*/	
 #define	AD7705_Shift_Out(_cout)	( void )bus_SPIxShift(_cout)
 
 ///////////////////////////////////////////////////////////////////

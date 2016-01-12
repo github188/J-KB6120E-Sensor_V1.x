@@ -382,93 +382,94 @@ uint8_t	bus_i2c_shin( enum I2C_AcknowlegeSet AcknowlegeSet )
 /**
  *	访问SPI总线
  */
-void	bus_SPIxPortInit( void )
-{
-	/* Initialize and enable the SSP Interface module. */
-	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN );
-	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_SPI1EN );
-	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
-	SET_BIT( AFIO->MAPR, AFIO_MAPR_SPI1_REMAP );
+// void	bus_SPIxPortInit( void )
+// {
+// 	/* Initialize and enable the SSP Interface module. */
+// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN );
+// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_SPI1EN );
+// 	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
+// 	SET_BIT( AFIO->MAPR, AFIO_MAPR_SPI1_REMAP );
 
-	/* SPI1_SCK, SPI1_MISO, SPI1_MOSI are SPI pins. */
- 	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00B4B000u );
+// 	/* SPI1_SCK, SPI1_MISO, SPI1_MOSI are SPI pins. */
+//  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00B4B000u );
 
-	/* Enable SPI in Master Mode, CPOL=1, CPHA=1. */
-	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR_0 |//
-				SPI_CR1_MSTR | SPI_CR1_CPHA | SPI_CR1_CPOL;
-	SPI1->CR2 = 0x0000u;
-}
-
-uint8_t bus_SPIxShift( uint8_t OutByte )
-{
-	uint8_t	inByte;
-	
-	SPI1->DR = OutByte;	 
-	while ( ! ( SPI1->SR & SPI_SR_RXNE )){}
-	inByte = SPI1->DR;
-
-	return	inByte;
-}
-/********************************** 功能说明 ***********************************
-*	访问 SPI 总线( SPI1x )
-*******************************************************************************/
-// // #ifdef	SimulationSPI/*TODEL*/	
-// #define	PinBB( _Port, _Num )	(*(__IO int32_t *)(PERIPH_BB_BASE + ((uint32_t)&(_Port) - PERIPH_BASE) * 32u + (_Num) * 4u ))
-// #define	Pin_SPIxSCK			PinBB( GPIOB->ODR,  3U )
-// #define	Pin_SPIxMISO		PinBB( GPIOB->IDR,  4U )
-// #define	Pin_SPIxMOSI		PinBB( GPIOB->ODR,  5U )
+// 	/* Enable SPI in Master Mode, CPOL=1, CPHA=1. */
+// 	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR_0 |//
+// 				SPI_CR1_MSTR | SPI_CR1_CPHA | SPI_CR1_CPOL;
+// 	SPI1->CR2 = 0x0000u;
+// }
 
 // uint8_t bus_SPIxShift( uint8_t OutByte )
 // {
-// 	uint8_t i;
+// 	uint8_t	inByte;
 // 	
-// 	for ( i = 8u; i != 0u; --i )
-// 	{
-// 		
-// 		delay_us( 30 );
-// 		if ( OutByte & 0x80u )
-// 		{
-// 			Pin_SPIxMOSI = 1;
-// 		}
-// 		else
-// 		{
-// 			Pin_SPIxMOSI = 0;
-// 		}
+// 	SPI1->DR = OutByte;	 
+// 	while ( ! ( SPI1->SR & SPI_SR_RXNE )){}
+// 	inByte = SPI1->DR;
 
-// 		delay_us( 30 );
-// 		Pin_SPIxSCK = 0;
-
-// 		delay_us( 30 );
-
-// 		OutByte <<= 1;
-// 		if ( Pin_SPIxMISO )
-// 		{
-// 			OutByte |= 0x01u;
-// 		}
-// 		else
-// 		{
-// 			OutByte &= 0xFEu;
-// 		}
-
-// 		delay_us( 30 );
-// 		Pin_SPIxSCK = 1;
-// 	}
-// /*TODEL*/		
-// Pin_SPIxMOSI = 0;	//1
-
-// 	return	OutByte;
+// 	return	inByte;
 // }
+/********************************** 功能说明 ***********************************
+*	访问 SPI 总线( SPI1x )
+*******************************************************************************/
+// #ifdef	SimulationSPI/*TODEL*/	
+#define	PinBB( _Port, _Num )	(*(__IO int32_t *)(PERIPH_BB_BASE + ((uint32_t)&(_Port) - PERIPH_BASE) * 32u + (_Num) * 4u ))
+#define	Pin_SPIxSCK			PinBB( GPIOB->ODR,  3U )
+#define	Pin_SPIxMISO		PinBB( GPIOB->IDR,  4U )
+#define	Pin_SPIxMOSI		PinBB( GPIOB->ODR,  5U )
+
+uint8_t bus_SPIxShift( uint8_t OutByte )
+{
+	uint8_t i;
+	
+	for ( i = 8u; i != 0u; --i )
+	{
+		
+		delay_us( 500 );
+		if ( OutByte & 0x80u )
+		{
+			Pin_SPIxMOSI = 1;
+		}
+		else
+		{
+			Pin_SPIxMOSI = 0;
+		}
+
+		delay_us( 500 );
+		Pin_SPIxSCK = 0;
+
+		delay_us( 500 );
+
+		OutByte <<= 1;
+		if ( Pin_SPIxMISO )
+		{
+			OutByte |= 0x01u;
+		}
+		else
+		{
+			OutByte &= 0xFEu;
+		}
+
+		delay_us( 500 );
+		Pin_SPIxSCK = 1;Pin_SPIxMOSI = 0;	//1
+
+	}
+/*TODEL*/		
+Pin_SPIxMOSI = 0;	//1
+
+	return	OutByte;
+}
 
 
-// void	bus_SPIxPortInit( void )
-// {
-// 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN );
-//  	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
+void	bus_SPIxPortInit( void )
+{
+	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN );
+ 	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
 
-//  	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPBEN );
-// 	Pin_SPIxSCK = 1;
-//  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00347000u );
-// }
+ 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPBEN );
+	Pin_SPIxSCK = 1;
+ 	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00347000u );
+}
 
 /**
  *	访问 STM32 ADC
