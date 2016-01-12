@@ -425,7 +425,7 @@ uint8_t bus_SPIxShift( uint8_t OutByte )
 // 	for ( i = 8u; i != 0u; --i )
 // 	{
 // 		
-// 		delay_us( 300 );
+// 		delay_us( 30 );
 // 		if ( OutByte & 0x80u )
 // 		{
 // 			Pin_SPIxMOSI = 1;
@@ -435,10 +435,10 @@ uint8_t bus_SPIxShift( uint8_t OutByte )
 // 			Pin_SPIxMOSI = 0;
 // 		}
 
-// 		delay_us( 300 );
+// 		delay_us( 30 );
 // 		Pin_SPIxSCK = 0;
 
-// 		delay_us( 300 );
+// 		delay_us( 30 );
 
 // 		OutByte <<= 1;
 // 		if ( Pin_SPIxMISO )
@@ -450,7 +450,7 @@ uint8_t bus_SPIxShift( uint8_t OutByte )
 // 			OutByte &= 0xFEu;
 // 		}
 
-// 		delay_us( 300 );
+// 		delay_us( 30 );
 // 		Pin_SPIxSCK = 1;
 // 	}
 // /*TODEL*/		
@@ -467,7 +467,7 @@ uint8_t bus_SPIxShift( uint8_t OutByte )
 
 //  	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPBEN );
 // 	Pin_SPIxSCK = 1;
-//  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00343000u );
+//  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00347000u );
 // }
 
 /**

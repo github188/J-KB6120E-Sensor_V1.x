@@ -336,7 +336,7 @@ void	HCBoxControl( void )
 					HCBoxCount ++;
 				else
 					HCBoxCount = 0;				
-				if(( HCBoxCount >= 60 * 3 ) || ( fabs( EK ) >= 5 ))	//	温差大于2℃且小于5℃超过3分钟或者30分钟内温度变化太快（温差大于5℃）
+				if(( HCBoxCount >= 60 * 10 ) || ( fabs( EK ) >= 5 ))	//	温差大于1℃且小于5℃超过10分钟或者10分钟内温度变化太快（温差大于5℃）
 				{
 					ControlFlag = TRUE;
 				}

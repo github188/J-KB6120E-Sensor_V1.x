@@ -162,7 +162,7 @@ uint16_t	Readout7705( enum enumCS7705 cs, uint8_t xs )
 		break;	//	done.
 		 }
 		Select7705( CS7705_none );			//	DeSelect All	
-		delay( 20u );
+		delay( 10u );
 	}
 
 	return	Result;
