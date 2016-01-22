@@ -28,8 +28,8 @@
 #define		Precision_11				0x50u
 #define		Precision_12				0x70u
 
-#define	TH_Value							0x7Fu
-#define	TL_Value							0x00u
+#define		TH_Value						0x7Fu
+#define		TL_Value						0x00u
 
 
 struct OW_DRV

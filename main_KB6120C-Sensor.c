@@ -89,7 +89,7 @@ uint16_t	iRetry = 0u;
 static	void	HCBox_Exec( void )
 {	
 	int16_t	Temp16S;
-// 	uint16_t T_Filter;
+
 	if ( DS18B20_4_Read( &Temp16S ))
 	{
 		iRetry = 0u;
@@ -191,12 +191,7 @@ static	void	Slice0_Exec( void )
 	{
 		PWM4_SetOutput( 0u );
 	}
-// 	Heat.Kp = usRegHoldingBuf[0];
-// 	Heat.Ti = usRegHoldingBuf[1];
-// 	Heat.Td = usRegHoldingBuf[2];
-// 	Cool.Kp = usRegHoldingBuf[10];
-// 	Cool.Ti = usRegHoldingBuf[11];
-// 	Cool.Td = usRegHoldingBuf[12];
+
 }
 
 ///////////////////////////////////////////////////
@@ -240,9 +235,7 @@ static	void	Slice2_Exec( void )
 	
 	
 }
-/*TODEL*/
-// uint8_t	Setbuf0[CS7705_Max][15] ={0};
-// uint8_t	Setbuf1[CS7705_Max][15] ={0};
+
 ///////////////////////////////////////////////////
 //	转换/读取 AD7705 通道 CH0
 ///////////////////////////////////////////////////
@@ -272,8 +265,7 @@ void	Update_CH0( void )
 			if ( isExist7705[i] )
 			{
 				Sum7705_CH0[i] += Readout7705 ((enum enumCS7705)i, 0u );
-// 				if( usRegHoldingBuf[13] == 0x56AB )/*TODEL*/	
-// 					ConfigureRead( Setbuf0[(enum enumCS7705)i], (enum enumCS7705)i, 0u );
+
 			}
 		}
 	}
@@ -325,8 +317,7 @@ void	Update_CH1( void )
 				Sum7705_CH1[i][1] = Sum7705_CH1[i][2];
 				Sum7705_CH1[i][2] = Sum7705_CH1[i][3];
 				Sum7705_CH1[i][3] = Readout7705 ((enum enumCS7705)i, 1u );
-// 				if( usRegHoldingBuf[13] == 0x56AB )/*TODEL*/	
-// 					ConfigureRead( Setbuf1[(enum enumCS7705)i], (enum enumCS7705)i, 1u );
+
 				mean = ((uint32_t)Sum7705_CH1[i][0] + Sum7705_CH1[i][1] + Sum7705_CH1[i][2] + Sum7705_CH1[i][3] ) / 4u;
 
 				usRegInputBuf[16 + ( i * 5 )] = mean;	//	计前压力
@@ -394,7 +385,6 @@ int32_t	main( void )
 		ucRegCoilsBuf[i] = 0u;
 		ucRegDiscBuf[i] = 0u;
 	}
-// 	usRegInputBuf[4] = 0xFFFF;	/*TODEL*/	
 
 	//	仪器自动配置
 	KB6120E_ConfigSelect();
@@ -408,23 +398,7 @@ int32_t	main( void )
 	{
 		//	活动计数器，表示系统通信正常。
 		++usRegInputBuf[0];
-// /*TODEL*/			
-// 		if( (usRegInputBuf[4] == 0xFFFF) && (usRegHoldingBuf[9] == 0xFFFF) )/*TODEL*/	
-// 		{
-// 			usRegInputBuf[4] = 0x0000;
-// 		}
-// 	
-// 		if( usRegHoldingBuf[12] )
-// 		{
-// 			for( i = 45; i < 60; i++ )
-// 			{
-// 				usRegInputBuf[i] = Setbuf0[usRegHoldingBuf[12] - 1][i-45];
-// 			}
-// 			for( i = 60; i < 75; i++ )
-// 			{
-// 				usRegInputBuf[i] = Setbuf1[usRegHoldingBuf[12] - 1][i-60];
-// 			}
-// 		}
+
 
 		Update_CH0( );
 
@@ -434,12 +408,5 @@ int32_t	main( void )
 // 		IWDG_Clear();
 	}
 }
-
-// 	usRegHoldingBuf[0] = 10;
-// 	usRegHoldingBuf[0] = 240;
-// 	usRegHoldingBuf[0] = 75;
-// 	usRegHoldingBuf[0] = 15;
-// 	usRegHoldingBuf[0] = 240;
-// 	usRegHoldingBuf[0] = 80;
 
 /********	(C) COPYRIGHT 2015 青岛金仕达电子科技有限公司	**** End Of File ****/

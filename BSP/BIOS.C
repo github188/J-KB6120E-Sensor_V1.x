@@ -5,7 +5,7 @@
 
 #define	PinBB( _Port, _Num )	(*(__IO int32_t *)(PERIPH_BB_BASE + ((uint32_t)&(_Port) - PERIPH_BASE) * 32u + (_Num) * 4u ))
 
-#pragma	push
+// #pragma	push
 #pragma O3	Ospace
 void	delay_us ( uint32_t us )
 {
@@ -17,7 +17,7 @@ void	delay_us ( uint32_t us )
 		__nop(); __nop(); __nop(); __nop(); __nop();
 	}
 }
-#pragma	pop
+// #pragma	pop
 void	delay( uint16_t ms )
 {
 	while ( ms-- )
@@ -385,7 +385,7 @@ uint8_t	bus_i2c_shin( enum I2C_AcknowlegeSet AcknowlegeSet )
 void	bus_SPIxPortInit( void )
 {
 	/* Initialize and enable the SSP Interface module. */
-	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN );
+	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPBEN );
 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_SPI1EN );
 	MODIFY_REG( AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE );
 	SET_BIT( AFIO->MAPR, AFIO_MAPR_SPI1_REMAP );
@@ -394,7 +394,7 @@ void	bus_SPIxPortInit( void )
  	MODIFY_REG( GPIOB->CRL, 0x00FFF000u, 0x00B4B000u );
 
 	/* Enable SPI in Master Mode, CPOL=1, CPHA=1. */
-	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR_0 |//
+	SPI1->CR1 = SPI_CR1_SSI	| SPI_CR1_SSM	| SPI_CR1_SPE	| SPI_CR1_BR_0 |SPI_CR1_BR_2 |//
 				SPI_CR1_MSTR | SPI_CR1_CPHA | SPI_CR1_CPOL;
 	SPI1->CR2 = 0x0000u;
 }
@@ -599,9 +599,7 @@ static	void	TIM1_Init( void )
 				| TIM_SMCR_ETPS_0
 				;
 	MODIFY_REG( GPIOA->CRH, 0x000F0000u, 0x00080000u );
-// 	GPIOA->CRH&=0XFFF0FFFF; //PA12 清除之前设置   
-// 	GPIOA->CRH|=0X00080000; //PA12 上拉下拉输入    
-// 	GPIOA->ODR&=0XEFFF;	
+
 	/* Enable the TIM Counter */
 	SET_BIT( TIMx->SMCR, TIM_SMCR_ECE );
  	SET_BIT( TIMx->CR1, TIM_CR1_CEN );
@@ -760,7 +758,6 @@ void	IWDG_Init( void )
 	IWDG->PR = IWDG_PR_PR_1;
 	IWDG->KR = 0xCCCC;	
 }
-
 
 
 void	IWDG_Clear( void )
