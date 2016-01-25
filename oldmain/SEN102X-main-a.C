@@ -21,9 +21,9 @@ uint16_t	get_AD7705( uint8_t	SelectBPGA )
 	Sum += Readout_AD7705( SelectBPGA );
 
 	return	(uint16_t)( Sum / 4u );
-	
+
 // 	delay( 80u );
-// 	
+//
 // 	return	get_CPU_Temp();
 }
 
@@ -38,6 +38,7 @@ void	FilterArrayIn( uint16_t InValue )
 	{
 		ArrayIndex = 0u;
 	}
+
 	Array[ArrayIndex] = InValue;
 }
 
@@ -58,20 +59,24 @@ void	FilterArrayOut( uint16_t OutResult[] )
 	uint16_t	Select = 0u;
 	uint16_t	Count = 0u;
 	uint32_t	Sum = 0u;
-	
+
 	for ( Select = 0u; Select < sizeof( NSEL) / sizeof(*NSEL); ++Select )
 	{
 		uint8_t	FilterLen = NSEL[Select];
-		
-		do {
+
+		do
+		{
 			Sum += Array[Index];
+
 			if ( 0u == Index )
 			{
 				Index = ArrayLen;
 			}
+
 			--Index;
-		} while ( ++Count < FilterLen );
-	
+		}
+		while ( ++Count < FilterLen );
+
 		OutResult[Select] = Sum / Count;
 	}
 }
@@ -84,10 +89,10 @@ int32_t	main( void )
 	uint16_t	Config7705;
 	uint8_t		MBAddress;
 	uint16_t	i;
-	
+
 	//	板上器件初始化
 	BIOS_Init();
-	
+
 	for ( i = 0; i < 10u; ++i )
 	{
 		usRegHoldingBuf[i] = 0u;
@@ -97,12 +102,12 @@ int32_t	main( void )
 	{
 		usRegInputBuf[i] = 0u;
 	}
-	
+
 //	for ( i = 0; i < ArrayLen - 1; ++i )
 //	{
 //		FilterArrayIn( 0u );
 //	}
-	
+
 //	get_Unique96(( void * ) &usRegInputBuf[13] );
 
 	Initialize_AD7705();
@@ -112,6 +117,7 @@ int32_t	main( void )
 //	Vload( _EE_SLAVE_BASE, &MBAddress, sizeof( MBAddress ));
 	Vload( _EE_IMAGE_BASE, &usRegHoldingBuf[10], _EE_IMAGE_LEN );
 	Vload( _EE_SLAVE_BASE, &MBAddress, sizeof( MBAddress ));
+
 	if (( MBAddress < 1u ) || ( MBAddress > 247u ))
 	{
 		MBAddress = 1u;
@@ -119,7 +125,7 @@ int32_t	main( void )
 
 	//	初始化MODBUS协议栈
 	MODBUS_Init( 1 );	//	MODBUS_Init( MBAddress );
-	
+
 	//	看门狗配置
 	for(;;)
 	{
@@ -129,13 +135,14 @@ int32_t	main( void )
 		//	活动计数器，表示从机工作正常
 		++usRegInputBuf[0];
 		delay(500);
-		
+
 		++usRegInputBuf[15];
 		++usRegInputBuf[16];
 		++usRegInputBuf[17];
-		
+
 	}
-//	
+
+//
 //		++usRegInputBuf[10];
 //		++usRegInputBuf[11];
 //		++usRegInputBuf[12];
@@ -177,7 +184,7 @@ int32_t	main( void )
 
 //		//	控制高压
 //		if ( 0u != usRegHoldingBuf[1] )
-//		{	
+//		{
 //			DAC1_OutputSet( usRegHoldingBuf[1] );
 //			HVPower_OutCmd( TRUE );					//	打开高压
 //		}
@@ -194,10 +201,10 @@ int32_t	main( void )
 //			{
 //				uint16_t	DataControlWord = usRegHoldingBuf[9];
 //				uint8_t	HiByte, LoByte;
-//				
+//
 //				HiByte = DataControlWord >> 8;
 //				LoByte = DataControlWord & 0xFFu;
-//			
+//
 //				if ( (uint8_t)( ~HiByte ) == LoByte )
 //				{
 //					switch ( LoByte )

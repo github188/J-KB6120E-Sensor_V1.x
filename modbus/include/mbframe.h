@@ -1,4 +1,4 @@
-/* 
+/*
  * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
  * Copyright (c) 2006 Christian Walter <wolti@sil.at>
  * All rights reserved.
@@ -72,12 +72,12 @@ typedef void    ( *pvMBFrameStart ) ( void );
 typedef void    ( *pvMBFrameStop ) ( void );
 
 typedef eMBErrorCode( *peMBFrameReceive ) ( UCHAR * pucRcvAddress,
-                                            UCHAR ** pucFrame,
-                                            USHORT * pusLength );
+    UCHAR ** pucFrame,
+    USHORT * pusLength );
 
 typedef eMBErrorCode( *peMBFrameSend ) ( UCHAR slaveAddress,
-                                         const UCHAR * pucFrame,
-                                         USHORT usLength );
+    const UCHAR * pucFrame,
+    USHORT usLength );
 
 typedef void( *pvMBFrameClose ) ( void );
 

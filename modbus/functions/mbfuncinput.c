@@ -1,4 +1,4 @@
-/* 
+/*
  * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
  * Copyright (c) 2006 Christian Walter <wolti@sil.at>
  * All rights reserved.
@@ -58,65 +58,66 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 eMBException
 eMBFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen )
 {
-    USHORT          usRegAddress;
-    USHORT          usRegCount;
-    UCHAR          *pucFrameCur;
+	USHORT          usRegAddress;
+	USHORT          usRegCount;
+	UCHAR          *pucFrameCur;
 
-    eMBException    eStatus = MB_EX_NONE;
-    eMBErrorCode    eRegStatus;
+	eMBException    eStatus = MB_EX_NONE;
+	eMBErrorCode    eRegStatus;
 
-    if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
-    {
-        usRegAddress = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
-        usRegAddress |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
-        usRegAddress++;
+	if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
+	{
+		usRegAddress = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
+		usRegAddress |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
+		usRegAddress++;
 
-        usRegCount = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF] << 8 );
-        usRegCount |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF + 1] );
+		usRegCount = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF] << 8 );
+		usRegCount |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF + 1] );
 
-        /* Check if the number of registers to read is valid. If not
-         * return Modbus illegal data value exception. 
-         */
-        if( ( usRegCount >= 1 )
-            && ( usRegCount < MB_PDU_FUNC_READ_REGCNT_MAX ) )
-        {
-            /* Set the current PDU data pointer to the beginning. */
-            pucFrameCur = &pucFrame[MB_PDU_FUNC_OFF];
-            *usLen = MB_PDU_FUNC_OFF;
+		/* Check if the number of registers to read is valid. If not
+		 * return Modbus illegal data value exception.
+		 */
+		if( ( usRegCount >= 1 )
+		    && ( usRegCount < MB_PDU_FUNC_READ_REGCNT_MAX ) )
+		{
+			/* Set the current PDU data pointer to the beginning. */
+			pucFrameCur = &pucFrame[MB_PDU_FUNC_OFF];
+			*usLen = MB_PDU_FUNC_OFF;
 
-            /* First byte contains the function code. */
-            *pucFrameCur++ = MB_FUNC_READ_INPUT_REGISTER;
-            *usLen += 1;
+			/* First byte contains the function code. */
+			*pucFrameCur++ = MB_FUNC_READ_INPUT_REGISTER;
+			*usLen += 1;
 
-            /* Second byte in the response contain the number of bytes. */
-            *pucFrameCur++ = ( UCHAR )( usRegCount * 2 );
-            *usLen += 1;
+			/* Second byte in the response contain the number of bytes. */
+			*pucFrameCur++ = ( UCHAR )( usRegCount * 2 );
+			*usLen += 1;
 
-            eRegStatus =
-                eMBRegInputCB( pucFrameCur, usRegAddress, usRegCount );
+			eRegStatus =
+			  eMBRegInputCB( pucFrameCur, usRegAddress, usRegCount );
 
-            /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
-            {
-                eStatus = prveMBError2Exception( eRegStatus );
-            }
-            else
-            {
-                *usLen += usRegCount * 2;
-            }
-        }
-        else
-        {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
-        }
-    }
-    else
-    {
-        /* Can't be a valid read input register request because the length
-         * is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
-    }
-    return eStatus;
+			/* If an error occured convert it into a Modbus exception. */
+			if( eRegStatus != MB_ENOERR )
+			{
+				eStatus = prveMBError2Exception( eRegStatus );
+			}
+			else
+			{
+				*usLen += usRegCount * 2;
+			}
+		}
+		else
+		{
+			eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+		}
+	}
+	else
+	{
+		/* Can't be a valid read input register request because the length
+		 * is incorrect. */
+		eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+	}
+
+	return eStatus;
 }
 
 #endif

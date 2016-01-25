@@ -31,33 +31,34 @@ static BOOL     xEventInQueue;
 BOOL
 xMBPortEventInit( void )
 {
-    xEventInQueue = FALSE;
-	
-    return TRUE;
+	xEventInQueue = FALSE;
+
+	return TRUE;
 }
 
 BOOL
 xMBPortEventPost( eMBEventType eEvent )
 {
-    xEventInQueue = TRUE;
-    eQueuedEvent = eEvent;
+	xEventInQueue = TRUE;
+	eQueuedEvent = eEvent;
 
 	//	悬起PendSV，使用PendSV解析协议栈
 	SCB->ICSR = SCB_ICSR_PENDSVSET;
-	
-    return TRUE;
+
+	return TRUE;
 }
 
 BOOL
 xMBPortEventGet( eMBEventType * eEvent )
 {
-    BOOL            xEventHappened = FALSE;
+	BOOL            xEventHappened = FALSE;
 
-    if( xEventInQueue )
-    {
-        *eEvent = eQueuedEvent;
-        xEventInQueue = FALSE;
-        xEventHappened = TRUE;
-    }
-    return xEventHappened;
+	if( xEventInQueue )
+	{
+		*eEvent = eQueuedEvent;
+		xEventInQueue = FALSE;
+		xEventHappened = TRUE;
+	}
+
+	return xEventHappened;
 }

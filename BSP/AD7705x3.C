@@ -64,18 +64,18 @@
 ///////////////////////////////////////////////////////////////////
 static	const	uint8_t	Cfg7705[CS7705_Max][2] =
 {
-    {
-        BIPOLAR + G_5 + BUF,	// C1H0: pf
-        BIPOLAR + G_4 + BUF,	// C1H1: pr
-    },
-    {
-        BIPOLAR + G_5 + BUF,	// C2H0: pf
-        BIPOLAR + G_4 + BUF,	// C2H1: pr
-    },
-    {
-        BIPOLAR + G_5 + BUF,	// C3H0: pf
-        BIPOLAR + G_4 + BUF,	// C3H1: pr
-    }
+	{
+		BIPOLAR + G_5 + BUF,	// C1H0: pf
+		BIPOLAR + G_4 + BUF,	// C1H1: pr
+	},
+	{
+		BIPOLAR + G_5 + BUF,	// C2H0: pf
+		BIPOLAR + G_4 + BUF,	// C2H1: pr
+	},
+	{
+		BIPOLAR + G_5 + BUF,	// C3H0: pf
+		BIPOLAR + G_4 + BUF,	// C3H1: pr
+	}
 };
 
 /**
@@ -85,22 +85,22 @@ static	uint8_t	_Convert7705( uint8_t mode_set, uint8_t xs )
 {
 	uint8_t	mode_readback;
 
-    AD7705_Shift_Out( xs + RS_1 );			// 切换到指定的采样通道
-    AD7705_Shift_Out( mode_set );			// 以指定的配置进行采样
+	AD7705_Shift_Out( xs + RS_1 );			// 切换到指定的采样通道
+	AD7705_Shift_Out( mode_set );			// 以指定的配置进行采样
 
-    AD7705_Shift_Out( xs + RS_2 );			// Clock Register, 8 Bits
-    AD7705_Shift_Out( CLKDIV + FS_1_0 );	// 50Hz @ 4.9152MHz
+	AD7705_Shift_Out( xs + RS_2 );			// Clock Register, 8 Bits
+	AD7705_Shift_Out( CLKDIV + FS_1_0 );	// 50Hz @ 4.9152MHz
 
-    AD7705_Shift_Out( xs + RS_4 );			// Test Register, 8 Bits
-    AD7705_Shift_Out( 0x00u );				// Default: 0x00
+	AD7705_Shift_Out( xs + RS_4 );			// Test Register, 8 Bits
+	AD7705_Shift_Out( 0x00u );				// Default: 0x00
 
-    AD7705_Shift_Out( xs + RS_3 + READ );	//	读取数据以复位 DRDY#
-    (void)AD7705_Shift_In();
-    (void)AD7705_Shift_In();
+	AD7705_Shift_Out( xs + RS_3 + READ );	//	读取数据以复位 DRDY#
+	(void)AD7705_Shift_In();
+	(void)AD7705_Shift_In();
 
-    AD7705_Shift_Out( xs + RS_1 + READ );	//	回读配置
-    mode_readback = AD7705_Shift_In();
-	
+	AD7705_Shift_Out( xs + RS_1 + READ );	//	回读配置
+	mode_readback = AD7705_Shift_In();
+
 	return	mode_readback;
 }
 
@@ -112,7 +112,7 @@ bool	Convert7705( enum enumCS7705 cs, uint8_t xs )
 	AD7705_Select( cs );
 	mode_readback = _Convert7705( mode_set, xs );
 	AD7705_Select( CS7705_none );
-	
+
 	if ( mode_set == mode_readback )
 	{
 		return	true;	//	工作正常
@@ -125,36 +125,37 @@ bool	Convert7705( enum enumCS7705 cs, uint8_t xs )
 
 uint16_t	Readout7705( enum enumCS7705 cs, uint8_t xs )
 {
-    uint16_t	Result = 0u;
-    uint8_t		iRetry;
+	uint16_t	Result = 0u;
+	uint8_t		iRetry;
 
-    for ( iRetry = 20u; iRetry != 0u; --iRetry )
-    {
+	for ( iRetry = 20u; iRetry != 0u; --iRetry )
+	{
 		uint8_t	ReadyState;
 
 		AD7705_Select( cs );
-        AD7705_Shift_Out( RS_0 + READ + xs );
-        ReadyState = AD7705_Shift_In();
-        AD7705_Select( CS7705_none );			//	DeSelect All
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+		AD7705_Select( CS7705_none );			//	DeSelect All
 
-        if ( 0x00u == ( ReadyState & DRDY ))
-        {	//	is DRDY# ?
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			//	is DRDY# ?
 			uint8_t	ResultH, ResultL;
 
 			AD7705_Select( cs );
-            AD7705_Shift_Out( RS_3 + READ + xs );	//	Read.
-            ResultH = AD7705_Shift_In();
-            ResultL = AD7705_Shift_In();
-            Result = ( ResultL + ( ResultH * 0x100u ));
+			AD7705_Shift_Out( RS_3 + READ + xs );	//	Read.
+			ResultH = AD7705_Shift_In();
+			ResultL = AD7705_Shift_In();
+			Result = ( ResultL + ( ResultH * 0x100u ));
 			AD7705_Select( CS7705_none );			//	DeSelect All
-			
+
 			break;	//	done.
-        }
+		}
 
-        delay( 10u );
-    }
+		delay( 10u );
+	}
 
-    return	Result;
+	return	Result;
 }
 
 void	Initialize7705( void )
@@ -173,7 +174,7 @@ void	Initialize7705( void )
 		AD7705_Shift_Out( 0xFFu );
 		AD7705_Shift_Out( 0xFFu );
 		AD7705_Shift_Out( 0xFFu );
-		
+
 		// 启动指定通道的自校准转换
 		_Convert7705( MD_1 + Cfg7705[i][1], 1u );
 

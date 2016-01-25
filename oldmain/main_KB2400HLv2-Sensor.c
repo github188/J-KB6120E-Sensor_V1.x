@@ -17,13 +17,20 @@ extern	uint8_t		ucRegCoilsBuf[];
 static	void	Fan2_Exec( void )
 {
 	static	bool	OutState = false;
-	
+
 	FP32	Temp = get_NTC2_Temp();
-	
+
 	//	高于40℃开，低于40℃关。
-	if ( Temp > 40.5f ){  OutState = true;  }
-	if ( Temp < 39.5f ){  OutState = false; }
-	
+	if ( Temp > 40.5f )
+	{
+		OutState = true;
+	}
+
+	if ( Temp < 39.5f )
+	{
+		OutState = false;
+	}
+
 	Fan2_OutCmd( OutState );
 }
 
@@ -56,7 +63,7 @@ static	void	Heater_Exec( void )
 		}
 
 		if ( Heater_EN )
-		{	
+		{
 			//	根据温度自动控制加热器的加热。
 			OutState = ( Temp16S < Temp_Set );
 		}
@@ -76,10 +83,10 @@ static	void	Heater_Exec( void )
 			OutState = false;	//	读取温度传感器失败，禁止加热器工作（输出复位）。
 		}
 	}
-	
+
 	Heater_OutCmd( OutState );
 	usRegInputBuf[9] = OutState ? 1000u : 0u;
-}	
+}
 
 
 
@@ -90,7 +97,7 @@ static	void	Slice0_Exec( void )
 {
 	bool	Protect_EN;
 	bool	Output_EN;
-	
+
 	Protect_EN = MonitorTickTimeout();	//	监视定时器超时，保护性的关闭所有输出
 	//	粉尘泵
 // 	Output_EN = Read_BitN( ucRegCoilsBuf, 15 );	// 允许输出?
@@ -109,6 +116,7 @@ static	void	Slice0_Exec( void )
 
 	//	时均C
 	Output_EN = Read_BitN( ucRegCoilsBuf, 30 );	// 允许输出?
+
 	if ( ! Protect_EN && Output_EN )
 	{
 		PWM1_SetOutput( usRegHoldingBuf[30] );
@@ -120,6 +128,7 @@ static	void	Slice0_Exec( void )
 
 	//	时均D
 	Output_EN = Read_BitN( ucRegCoilsBuf, 35 );	// 允许输出?
+
 	if ( ! Protect_EN && Output_EN )
 	{
 		PWM2_SetOutput( usRegHoldingBuf[35] );
@@ -143,10 +152,10 @@ static	void	Slice1_Exec( void )
 	}
 
 	if ( DS18B20_3_Read( &Temp16S ))
-	{	
+	{
 // 		usRegInputBuf[17] = Temp16S;	//	计前温度（粉尘）
 		usRegInputBuf[32] = Temp16S;	//	计前温度（时均C）
-		usRegInputBuf[37] = Temp16S;	//	计前温度（时均D）	
+		usRegInputBuf[37] = Temp16S;	//	计前温度（时均D）
 	}
 
 	Heater_Exec();		//	加热器温度更新，加热器温度控制
@@ -164,7 +173,7 @@ static	void	Slice2_Exec( void )
 	usRegInputBuf[3] = rint ( 16.0f * get_NTC1_Temp());	//	电机温度
 
 	Fan2_Exec();			//	电源温度更新，电源散热风扇控制
-	
+
 }
 
 ///////////////////////////////////////////////////
@@ -200,7 +209,7 @@ void	Update_CH0(void )
 			}
 		}
 	}
-	
+
 	//	通道 CH0 的结果连续多次采样的平均值
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
@@ -225,7 +234,7 @@ void	Update_CH1( void )
 	{
 		isExist7705[i] = Convert7705 ((enum enumCS7705)i, 1u );
 	}
-	
+
 	///////////////////////////////////////////////////
 	//	时间片段2
 	///////////////////////////////////////////////////
@@ -236,7 +245,7 @@ void	Update_CH1( void )
 		///////////////////////////////////////////////////
 		Slice0_Exec();	//	时间片段0，空余时间尽量快的执行
 		///////////////////////////////////////////////////
-		
+
 		for ( i = 0u; i < CS7705_Max; ++i )
 		{
 			if ( isExist7705[i] )
@@ -247,7 +256,7 @@ void	Update_CH1( void )
 				Sum7705_CH1[i][1] = Sum7705_CH1[i][2];
 				Sum7705_CH1[i][2] = Sum7705_CH1[i][3];
 				Sum7705_CH1[i][3] = Readout7705 ((enum enumCS7705)i, 1u );
-				
+
 				mean = ((uint32_t)Sum7705_CH1[i][0] + Sum7705_CH1[i][1] + Sum7705_CH1[i][2] + Sum7705_CH1[i][3] ) / 4u;
 
 				usRegInputBuf[26+ ( i * 5 )] = mean;	//	计前压力
@@ -260,7 +269,7 @@ int32_t	main( void )
 {
 	int16_t		Temp16S;
 	uint16_t	i;
-	
+
 	//	板上器件初始化
 	BIOS_Init( );
 	DS18B20_1_Read( &Temp16S );		//	读18B20, 跳过 0x0550
@@ -280,7 +289,7 @@ int32_t	main( void )
 		ucRegCoilsBuf[i] = 0u;
 		ucRegDiscBuf[i] = 0u;
 	}
-	
+
 	// Set_BitN( ucRegDiscBuf, 1 );	//	大气压力 存在
 	Set_BitN( ucRegDiscBuf, 2 );	//	环境温度 存在
 	Set_BitN( ucRegDiscBuf, 3 );	//	电机温度 存在
@@ -296,10 +305,10 @@ int32_t	main( void )
 	Set_BitN( ucRegDiscBuf, 35 );	//	时均D  本组信号 存在
 	Set_BitN( ucRegDiscBuf, 36 );	//	       计前压力 有效
 	Set_BitN( ucRegDiscBuf, 37 );	//	       计前温度 有效
-	
+
 	//	初始化MODBUS协议栈
 	MODBUS_Init( 1 );
-	
+
 	//	看门狗配置
 	//	InitWDT();
 	for(;;)

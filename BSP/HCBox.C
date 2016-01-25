@@ -33,41 +33,59 @@ uint16_t	FanSpeed_fetch( void )
 	uint16_t	min = 0xFFFFu;
 	uint16_t	x0, x1, speed;
 	x1 = fanCountList[index];
+
 	for ( ii = fanCountListLen - 1u; ii != 0; --ii )
 	{
 		//	依次求增量得到速度
 		x0 = x1;
-		if ( ++index >= fanCountListLen ){  index = 0u; }
+
+		if ( ++index >= fanCountListLen )
+		{
+			index = 0u;
+		}
+
 		x1 = fanCountList[index];
 		speed = ( x1 - x0 );
+
 		//	对多个数据进行滤波
-		if ( speed > max ) {  max = speed; }
-		if ( speed < min ) {  min = speed; }
+		if ( speed > max )
+		{
+			max = speed;
+		}
+
+		if ( speed < min )
+		{
+			min = speed;
+		}
+
 		sum += speed;
 	}
 
 	speed = (uint16_t)( sum - max - min ) / ( fanCountListLen - (1u+2u));
-	
+
 	return	speed  * 30u;
 }
 
 uint16_t fanspeed;
 static	uint16_t	fan_shut_delay = 0u;
 void	HCBoxFan_Update( void )
-{	
-	
+{
+
 	//	定间隔记录转动圈数
- 	fanCountList[ fanCountList_index] = HCBoxFan_Circle_Read();
+	fanCountList[ fanCountList_index] = HCBoxFan_Circle_Read();
+
 	if ( ++fanCountList_index >= fanCountListLen )
 	{
 		fanCountList_index = 0u;
 	}
+
 	fanspeed = FanSpeed_fetch();
+
 	//	风扇开关单稳态控制
 	if ( --fan_shut_delay == 0u )
 	{
 		HCBoxFan_OutCmd( FALSE );
-	}	
+	}
 }
 
 /********  (C) COPYRIGHT 2014 青岛金仕达电子科技有限公司  **** End Of File ****/
@@ -83,7 +101,7 @@ void	HCBoxFan_Update( void )
 // {
 // 	DMA_Channel_TypeDef	* DMA1_Channelx = DMA1_Channel2;
 // 	TIM_TypeDef * TIMx = TIM1;
-// 	
+//
 // 	//	DMA1 channel1 configuration
 // 	SET_BIT ( RCC->AHBENR,  RCC_AHBENR_DMA1EN );
 // 	//	DMA模块禁能, 重新配置
@@ -112,7 +130,7 @@ void	HCBoxFan_Update( void )
 // 	TIMx->PSC = 240u - 1;	//	10us @ 24MHz
 // 	TIMx->ARR = 0xFFFFu;
 // 	TIMx->EGR = TIM_EGR_UG;
-// 	
+//
 // 	TIMx->CCMR1 = TIM_CCMR1_CC1S_0					//	CC1S  : 01b   IC1 映射到IT1上。
 // 				| TIM_CCMR1_IC1F_1|TIM_CCMR1_IC1F_0	//	IC1F  : 0011b 配置输入滤波器，8个定时器时钟周期滤波
 // 				| TIM_CCMR1_IC2PSC_1				//	IC1PSC: 01b   配置输入分频，每隔2次事件发生一次捕获
@@ -132,7 +150,7 @@ void	HCBoxFan_Update( void )
 // uint16_t	fetchSpeed( void )
 // {	//	取 DMA 计数 或 内存地址指针，并连续向前增量两次。
 // 	//	如果DMA计数 或 内存指针都不可用，取N次的差值，并丢弃最大值和最小值。
-// 	
+//
 // 	/*	固定间隔1s记录风扇转动圈数到缓冲区，
 // 	 *	依次计算增量并滤波的结果即风扇转速。
 // 	 */
@@ -146,7 +164,7 @@ void	HCBoxFan_Update( void )
 // 	index = ( DMA1_Channelx->CMAR - ( uint32_t ) CMRA ) / sizeof( uint16_t);	//	内存地址
 // 	if ( ++index >= CMR_Len ){  index = 0u; }
 // 	if ( ++index >= CMR_Len ){  index = 0u; }
-// 	
+//
 // 	x1 = CMRA[index];
 // 	for ( ii = CMR_Len - 2u; ii != 0; --ii )
 // 	{

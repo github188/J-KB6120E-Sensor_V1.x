@@ -27,10 +27,10 @@
 
 #include <stdint.h>
 #ifndef	__bool_true_false_are_defined
-	#include <stdbool.h>
-	typedef	bool	BOOL;
-	#define	TRUE	true
-	#define	FALSE	false
+#include <stdbool.h>
+typedef	bool	BOOL;
+#define	TRUE	true
+#define	FALSE	false
 #endif
 #include <assert.h>
 
@@ -38,7 +38,7 @@
 #define PR_BEGIN_EXTERN_C           extern "C" {
 #define	PR_END_EXTERN_C             }
 
-#define ENTER_CRITICAL_SECTION( )   
+#define ENTER_CRITICAL_SECTION( )
 //	__disable_irq()
 #define EXIT_CRITICAL_SECTION( )
 //	__enable_irq()

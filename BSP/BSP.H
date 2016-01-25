@@ -1,19 +1,19 @@
 #include <stdint.h>
 #ifndef	__bool_true_false_are_defined
-	#include <stdbool.h>
-	typedef	bool	BOOL;
-	#define	TRUE	true
-	#define	FALSE	false
+#include <stdbool.h>
+typedef	bool	BOOL;
+#define	TRUE	true
+#define	FALSE	false
 #endif
 
 typedef	float	FP32;
-	
+
 #include <assert.h>
 
 #define	LOBYTE(__w)		((uint8_t)((__w)&0x0FF))
 #define	HIBYTE(__w)		((uint8_t)(((__w)>>8)&0x0FF))
 
-// struct	uPID_Parament 
+// struct	uPID_Parament
 // {
 // 	uint16_t Kp;
 // 	uint16_t Ti;
@@ -102,7 +102,7 @@ extern	void	DS18B20_Precision_Init( void );
 //////	AD7705
 enum	enumCS7705
 {
-  CS7705_1, CS7705_2, CS7705_3, 
+	CS7705_1, CS7705_2, CS7705_3,
 	CS7705_4, CS7705_5, CS7705_Max,
 	CS7705_none,
 };
@@ -129,8 +129,8 @@ void	MonitorTickReset( void );
 bool	MonitorTickTimeout( void );
 void	MonitorTickInit( void );
 
-extern	bool	FM24C64_Save( uint16_t Address, const uint8_t * Buffer, uint16_t NBytes );
-extern	bool	FM24C64_Load( uint16_t Address,       uint8_t * Buffer, uint16_t NBytes );
+// extern	bool	FM24C64_Save( uint16_t Address, const uint8_t * Buffer, uint16_t NBytes );
+// extern	bool	FM24C64_Load( uint16_t Address,       uint8_t * Buffer, uint16_t NBytes );
 
-#define	NVRAM_Load	FM24C64_Load
-#define	NVRAM_Save	FM24C64_Save
+// #define	NVRAM_Load	FM24C64_Load
+// #define	NVRAM_Save	FM24C64_Save

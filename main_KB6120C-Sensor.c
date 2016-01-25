@@ -17,13 +17,20 @@ extern	uint8_t		ucRegCoilsBuf[];
 static	void	Fan1_Exec( void )
 {
 	static	bool	OutState = false;
-	
+
 	FP32	Temp = get_NTC1_Temp();					//	电源
-	
+
 	//	高于40℃开，低于40℃关。
-	if ( Temp > 40.5f ){	OutState = true;	}
-	if ( Temp < 39.5f ){	OutState = false; }
-	
+	if ( Temp > 40.5f )
+	{
+		OutState = true;
+	}
+
+	if ( Temp < 39.5f )
+	{
+		OutState = false;
+	}
+
 	Fan1_OutCmd( OutState );
 }
 ///////////////////////////////////////////////////
@@ -36,7 +43,7 @@ static	void	Heater_Exec( void )
 	int16_t	Temp16S;
 	int16_t	Temp_Set;
 	bool	Heater_EN;
-	
+
 	if ( DS18B20_2_Read( &Temp16S ))
 	{
 		iRetry = 0u;
@@ -55,7 +62,7 @@ static	void	Heater_Exec( void )
 		}
 
 		if ( Heater_EN )
-		{	
+		{
 			//	根据温度自动控制加热器的加热。
 			OutState = ( Temp16S < Temp_Set );
 		}
@@ -63,6 +70,7 @@ static	void	Heater_Exec( void )
 		{
 			OutState = false;	//	禁止加热器工作。
 		}
+
 		Heater_OutCmd( OutState );
 		usRegInputBuf[9] = OutState ? 1000u : 0u;
 	}
@@ -77,9 +85,9 @@ static	void	Heater_Exec( void )
 			OutState = false;	//	读取温度传感器失败，禁止加热器工作（输出复位）。
 		}
 	}
-	
 
-}	
+
+}
 
 ///////////////////////////////////////////////////
 //	恒温箱温度控制
@@ -87,7 +95,7 @@ static	void	Heater_Exec( void )
 
 uint16_t	iRetry = 0u;
 static	void	HCBox_Exec( void )
-{	
+{
 	int16_t	Temp16S;
 
 	if ( DS18B20_4_Read( &Temp16S ))
@@ -95,7 +103,7 @@ static	void	HCBox_Exec( void )
 		iRetry = 0u;
 		usRegInputBuf[5] = Temp16S;
 		usRegInputBuf[6] = get_HCBoxOutput();
-		usRegInputBuf[7] = get_HCBoxFanSpeed();	
+		usRegInputBuf[7] = get_HCBoxFanSpeed();
 	}
 	else if( Read_BitN( ucRegDiscBuf, 5 ) )
 	{
@@ -115,26 +123,27 @@ static	void	Slice0_Exec( void )
 {
 	bool	Protect_EN;
 	bool	Output_EN;
-	
+
 	Protect_EN = MonitorTickTimeout();	//0;//	监视定时器超时，保护性的关闭所有输出
 	HCBoxControl();
 	Output_EN = Read_BitN( ucRegCoilsBuf, 10 ) |
-							Read_BitN( ucRegCoilsBuf, 20 ) | 
-							Read_BitN( ucRegCoilsBuf, 25 ) | 
-							Read_BitN( ucRegCoilsBuf, 30 ) | 
-							Read_BitN( ucRegCoilsBuf, 35 ) ;	// 允许输出?
+	            Read_BitN( ucRegCoilsBuf, 20 ) |
+	            Read_BitN( ucRegCoilsBuf, 25 ) |
+	            Read_BitN( ucRegCoilsBuf, 30 ) |
+	            Read_BitN( ucRegCoilsBuf, 35 ) ;	// 允许输出?
 	PowerAIR_OutCmd( Output_EN );
-	
+
 	//转子大气AIR
 	Output_EN = Read_BitN( ucRegCoilsBuf, 10 );	// 允许输出?
+
 	if ( ! Protect_EN && Output_EN && Read_BitN( ucRegDiscBuf, 10 ) )
 		PowerAIR_OutCmd( true );
-	else 
-	if( Read_BitN( ucRegDiscBuf, 10 ) )
+	else if( Read_BitN( ucRegDiscBuf, 10 ) )
 		PowerAIR_OutCmd( false );
-	
+
 	//	粉尘泵
 	Output_EN = Read_BitN( ucRegCoilsBuf, 15 );	// 允许输出?
+
 	if ( ! Protect_EN && Output_EN && Read_BitN( ucRegDiscBuf, 15 ) )
 	{
 		Fan2_OutCmd( true );
@@ -150,6 +159,7 @@ static	void	Slice0_Exec( void )
 
 //	日均A
 	Output_EN = Read_BitN( ucRegCoilsBuf, 20 );
+
 	if ( ! Protect_EN && Output_EN && Read_BitN( ucRegDiscBuf, 20 ) )
 	{
 		PWM1_SetOutput( usRegHoldingBuf[20] );
@@ -161,6 +171,7 @@ static	void	Slice0_Exec( void )
 
 	//	日均B
 	Output_EN = Read_BitN( ucRegCoilsBuf, 25 );
+
 	if ( ! Protect_EN && Output_EN && Read_BitN( ucRegDiscBuf, 25 ) )
 	{
 		PWM2_SetOutput( usRegHoldingBuf[25] );
@@ -169,9 +180,10 @@ static	void	Slice0_Exec( void )
 	{
 		PWM2_SetOutput( 0u );
 	}
-	
-	//	时均C	
+
+	//	时均C
 	Output_EN = Read_BitN( ucRegCoilsBuf, 30 );
+
 	if ( ! Protect_EN && Output_EN && Read_BitN( ucRegDiscBuf, 30 ) )
 	{
 		PWM3_SetOutput( usRegHoldingBuf[30] );
@@ -183,6 +195,7 @@ static	void	Slice0_Exec( void )
 
 	//	时均D
 	Output_EN = Read_BitN( ucRegCoilsBuf, 35 );
+
 	if ( ! Protect_EN && Output_EN && Read_BitN( ucRegDiscBuf, 35 ) )
 	{
 		PWM4_SetOutput( usRegHoldingBuf[35] );
@@ -205,21 +218,23 @@ static	void	Slice1_Exec( void )
 	{
 		usRegInputBuf[2]	= Temp16S;	//	环境温度
 	}
+
 	if ( DS18B20_3_Read( &Temp16S ))
-	{	
- 		usRegInputBuf[17] = Temp16S;	//	计前温度（粉尘）
-		
+	{
+		usRegInputBuf[17] = Temp16S;	//	计前温度（粉尘）
+
 		usRegInputBuf[22] = Temp16S;	//	计前温度（日均A）
-		usRegInputBuf[27] = Temp16S;	//	计前温度（日均B）	
- 		
+		usRegInputBuf[27] = Temp16S;	//	计前温度（日均B）
+
 		usRegInputBuf[32] = Temp16S;	//	计前温度（时均C）
-		usRegInputBuf[37] = Temp16S;	//	计前温度（时均D）	
+		usRegInputBuf[37] = Temp16S;	//	计前温度（时均D）
 	}
-	
+
 // 	if( Read_BitN( ucRegDiscBuf, 5 ) )
-		HCBox_Exec();			//	恒温箱温度更新，恒温箱温度控制
+	HCBox_Exec();			//	恒温箱温度更新，恒温箱温度控制
 // 	if( Read_BitN( ucRegDiscBuf, 8 ) )
-		Heater_Exec();		//	加热器温度更新，加热器温度控制
+	Heater_Exec();		//	加热器温度更新，加热器温度控制
+
 	HCBoxControl();
 
 }
@@ -232,8 +247,8 @@ static	void	Slice2_Exec( void )
 	usRegInputBuf[3] = rint ( 16.0f * get_NTC2_Temp());	//	电机温度
 	HCBoxControl();
 	Fan1_Exec();			//	电源温度更新，电源散热风扇控制
-	
-	
+
+
 }
 
 ///////////////////////////////////////////////////
@@ -259,17 +274,16 @@ void	Update_CH0( void )
 	{
 		///////////////////////////////////////////////////
 		Slice0_Exec();	//	时间片段0，空余时间尽量快的执行
+
 		///////////////////////////////////////////////////
 		for ( i = 0u; i < CS7705_Max; ++i )
 		{
 			if ( isExist7705[i] )
 			{
 				Sum7705_CH0[i] += Readout7705 ((enum enumCS7705)i, 0u );
-
 			}
 		}
 	}
-
 
 	//	通道 CH0 的结果连续多次采样的平均值
 	for ( i = 0u; i < CS7705_Max; ++i )
@@ -295,7 +309,7 @@ void	Update_CH1( void )
 	{
 		isExist7705[i] = Convert7705 ((enum enumCS7705)i, 1u );
 	}
-	
+
 	///////////////////////////////////////////////////
 	//	时间片段2
 	///////////////////////////////////////////////////
@@ -306,7 +320,7 @@ void	Update_CH1( void )
 		///////////////////////////////////////////////////
 		Slice0_Exec(); //	时间片段0，空余时间尽量快的执行
 		///////////////////////////////////////////////////
-		
+
 		for ( i = 0u; i < CS7705_Max; ++i )
 		{
 			if ( isExist7705[i] )
@@ -333,34 +347,41 @@ static void KB6120E_ConfigSelect( void )
 	uint8_t		isExist7705[CS7705_Max];
 	uint8_t	i;
 	int16_t		Temp16S;
-	
+
 	DS18B20_Precision_Init();
-	delay( 750 ); 
+
+	delay( 750 );
+
 	DS18B20_1_Read( &Temp16S );		//	读18B20, 跳过 0x0550 环境温度
-	if( DS18B20_2_Read( &Temp16S	))	
+
+	if( DS18B20_2_Read( &Temp16S	))
 		Set_BitN( ucRegDiscBuf, 8 );	//	加热器温度
+
 	DS18B20_3_Read( &Temp16S );		//	计前温度
-	if( DS18B20_4_Read( &Temp16S ) )	
-		Set_BitN( ucRegDiscBuf, 5 );	//	恒温箱温度	
-		
+
+	if( DS18B20_4_Read( &Temp16S ) )
+		Set_BitN( ucRegDiscBuf, 5 );	//	恒温箱温度
+
 	Initialize7705();						//	计压差压初始化		自校准
 
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
 		isExist7705[i] = Convert7705 ((enum enumCS7705)i, 0u );
 	}
+
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
 		if ( isExist7705[i] )
 		{
-			 Set_BitN( ucRegDiscBuf, 15 + i * 5	);
+			Set_BitN( ucRegDiscBuf, 15 + i * 5	);
 		}
 	}
-	if( Read_BitN(ucRegDiscBuf, 10)	&& 
-		(!Read_BitN(ucRegDiscBuf, 20)) && 
-		(!Read_BitN(ucRegDiscBuf, 25)) && 
-		(!Read_BitN(ucRegDiscBuf, 30)) && 
-		(!Read_BitN(ucRegDiscBuf, 35)) )
+
+	if( Read_BitN(ucRegDiscBuf, 10)	&&
+	    (!Read_BitN(ucRegDiscBuf, 20)) &&
+	    (!Read_BitN(ucRegDiscBuf, 25)) &&
+	    (!Read_BitN(ucRegDiscBuf, 30)) &&
+	    (!Read_BitN(ucRegDiscBuf, 35)) )
 		Set_BitN( ucRegDiscBuf, 10 );
 }
 
@@ -370,16 +391,17 @@ static void KB6120E_ConfigSelect( void )
 int32_t	main( void )
 {
 
-	uint16_t	i;	
+	uint16_t	i;
 
-	BIOS_Init( );			//	板上器件初始化
+	BIOS_Init();			//	板上器件初始化
+
 	//	初始化通信缓冲区
 	for ( i = 0; i < 40u; ++i )
 	{
 		usRegHoldingBuf[i] = 0u;
 		usRegInputBuf[i]	 = 0u;
 	}
-	
+
 	for ( i = 0; i < (( 40u + 7 ) / 8 ); ++i )
 	{
 		ucRegCoilsBuf[i] = 0u;
@@ -388,13 +410,13 @@ int32_t	main( void )
 
 	//	仪器自动配置
 	KB6120E_ConfigSelect();
-	
+
 	//	初始化MODBUS协议栈
 	MODBUS_Init( 1 );
 	//	看门狗配置
 // 	IWDG_Init();
-	
-	for(;;)  
+
+	for(;;)
 	{
 		//	活动计数器，表示系统通信正常。
 		++usRegInputBuf[0];

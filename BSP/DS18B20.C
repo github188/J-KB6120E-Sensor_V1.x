@@ -39,7 +39,7 @@ struct OW_DRV
 	BOOL ( *Slot )( BOOL IO_Slot );
 };
 
-struct OW_DRV const DS18B20_Temp1 = 
+struct OW_DRV const DS18B20_Temp1 =
 {
 	OW_1_Init,
 	OW_1_Reset,
@@ -92,13 +92,13 @@ static	uint8_t  OW_Slot8( struct OW_DRV const * OW, uint8_t IOByte )
 {
 	BOOL	inBit, outBit;
 	uint_fast8_t	i;
-	
+
 	for ( i = 8u; i != 0u; --i )
 	{
 		outBit = ( IOByte & 0x01u ) ? ( 1 ) : ( 0 );
 
 		inBit = OW_Slot( OW, outBit );
-	
+
 		IOByte = ( inBit ) ? (( IOByte >> 1 ) | 0x80u ) : (( IOByte >> 1 ) & 0x7Fu );
 	}
 
@@ -110,31 +110,48 @@ static	uint8_t  OW_Slot8( struct OW_DRV const * OW, uint8_t IOByte )
 BOOL	DS18B20_Precision( struct OW_DRV const * OW, uint8_t  Precision )	// 精度转换	防止有些DS18B20出厂时未设置为12位精度
 {
 
-	if ( ! OW )	{  return	FALSE;	}
+	if ( ! OW )
+	{
+		return	FALSE;
+	}
 
-	if ( ! OW_Init( OW ))    {	return	FALSE;	}
-	if ( ! OW_isReady( OW )) {	return	FALSE;	}
-	if ( ! OW_Reset( OW ))   {	return	FALSE;	}
-	
-	( void )OW_Slot8( OW, Skip_ROM );  // 
+	if ( ! OW_Init( OW ))
+	{
+		return	FALSE;
+	}
+
+	if ( ! OW_isReady( OW ))
+	{
+		return	FALSE;
+	}
+
+	if ( ! OW_Reset( OW ))
+	{
+		return	FALSE;
+	}
+
+	( void )OW_Slot8( OW, Skip_ROM );  //
 	( void )OW_Slot8( OW, Write_Scratchpad );  //
-	
+
 	( void )OW_Slot8( OW, TH_Value );  //
-	( void )OW_Slot8( OW, TL_Value );  // 
-	( void )OW_Slot8( OW, Config_Register | Precision );  // 
-	
-	if ( ! OW_Reset( OW ))   {	return	FALSE;	}
-	
-	( void )OW_Slot8( OW, Skip_ROM );  // 
-	( void )OW_Slot8( OW, Copy_Scratchpad );  // 
-	
+	( void )OW_Slot8( OW, TL_Value );  //
+	( void )OW_Slot8( OW, Config_Register | Precision );  //
+
+	if ( ! OW_Reset( OW ))
+	{
+		return	FALSE;
+	}
+
+	( void )OW_Slot8( OW, Skip_ROM );  //
+	( void )OW_Slot8( OW, Copy_Scratchpad );  //
+
 	return TRUE;
-	
+
 }
 
 static	BOOL	DS18B20_Load( struct OW_DRV const * OW, uint8_t DS18B20_Buf[9] )
 {
-	static	uint8_t	const DallasCRC8[256] = 
+	static	uint8_t	const DallasCRC8[256] =
 	{
 		0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,
 		157, 195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220,
@@ -156,23 +173,38 @@ static	BOOL	DS18B20_Load( struct OW_DRV const * OW, uint8_t DS18B20_Buf[9] )
 
 	uint8_t i;
 	uint8_t CRC8;
-	
-	if ( ! OW )	{  return	FALSE;	}
 
-	if ( ! OW_Init( OW ))    {	return	FALSE;	}
-	if ( ! OW_isReady( OW )) {	return	FALSE;	}
-	if ( ! OW_Reset( OW ))   {	return	FALSE;	}
+	if ( ! OW )
+	{
+		return	FALSE;
+	}
+
+	if ( ! OW_Init( OW ))
+	{
+		return	FALSE;
+	}
+
+	if ( ! OW_isReady( OW ))
+	{
+		return	FALSE;
+	}
+
+	if ( ! OW_Reset( OW ))
+	{
+		return	FALSE;
+	}
 
 	( void )OW_Slot8( OW, Skip_ROM );  				// Skip ROM Command
 	( void )OW_Slot8( OW, Read_Scratchpad );  // Read Scrachpad Command
 
 	CRC8 = 0u;
+
 	for ( i = 0u; i < 9u; ++i )
 	{
 		DS18B20_Buf[i] = OW_Slot8( OW, 0xFFu );
 		CRC8 = DallasCRC8[ CRC8 ^ DS18B20_Buf[i]];
 	}
-	
+
 	if ( 0u != CRC8 )
 	{
 		return FALSE;
@@ -189,12 +221,12 @@ static	BOOL	DS18B20_Load( struct OW_DRV const * OW, uint8_t DS18B20_Buf[9] )
 static	BOOL	DS18B20_Read( struct OW_DRV const * OW, int16_t * pT16S )
 {
 	uint8_t	DS18B20_Buf[9];
-	
+
 	if ( ! DS18B20_Load( OW, DS18B20_Buf ))
 	{
 		return	FALSE;
 	}
-	
+
 	*pT16S = (int16_t)( DS18B20_Buf [1] * 256 + DS18B20_Buf[0] );
 	return	TRUE;
 }

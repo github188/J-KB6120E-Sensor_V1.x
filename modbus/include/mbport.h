@@ -1,4 +1,4 @@
-/* 
+/*
  * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
  * Copyright (c) 2006 Christian Walter <wolti@sil.at>
  * All rights reserved.
@@ -39,10 +39,10 @@ PR_BEGIN_EXTERN_C
 
 typedef enum
 {
-    EV_READY,                   /*!< Startup finished. */
-    EV_FRAME_RECEIVED,          /*!< Frame received. */
-    EV_EXECUTE,                 /*!< Execute function. */
-    EV_FRAME_SENT               /*!< Frame sent. */
+	EV_READY,                   /*!< Startup finished. */
+	EV_FRAME_RECEIVED,          /*!< Frame received. */
+	EV_EXECUTE,                 /*!< Execute function. */
+	EV_FRAME_SENT               /*!< Frame sent. */
 } eMBEventType;
 
 /*! \ingroup modbus
@@ -54,9 +54,9 @@ typedef enum
  */
 typedef enum
 {
-    MB_PAR_NONE,                /*!< No parity. */
-    MB_PAR_ODD,                 /*!< Odd parity. */
-    MB_PAR_EVEN                 /*!< Even parity. */
+	MB_PAR_NONE,                /*!< No parity. */
+	MB_PAR_ODD,                 /*!< Odd parity. */
+	MB_PAR_EVEN                 /*!< Even parity. */
 } eMBParity;
 
 /* ----------------------- Supporting functions -----------------------------*/

@@ -44,14 +44,14 @@ xMBPortTimersInit( USHORT usTim1Timerout50us )
 	//	ÅäÖÃÖÐ¶Ï
 //	NVIC_SetPriority( TIM4_IRQn, 255u );
 	NVIC_EnableIRQ( TIM4_IRQn );
-	
+
 	return TRUE;
 }
 
 void
 vMBPortTimersEnable(  )
 {
-    /* Enable the timer with the timeout passed to xMBPortTimersInit( ) */
+	/* Enable the timer with the timeout passed to xMBPortTimersInit( ) */
 	CLEAR_BIT( MB_TIMER->SR, TIM_SR_UIF );
 	SET_BIT( MB_TIMER->DIER, TIM_DIER_UIE );
 	MB_TIMER->CNT = 0u;
@@ -61,12 +61,12 @@ vMBPortTimersEnable(  )
 void
 vMBPortTimersDisable(  )
 {
-    /* Disable any pending timers. */
+	/* Disable any pending timers. */
 	CLEAR_BIT( MB_TIMER->CR1, TIM_CR1_CEN );
 	MB_TIMER->CNT = 0u;
 	CLEAR_BIT( MB_TIMER->DIER, TIM_DIER_UIE );
 	CLEAR_BIT( MB_TIMER->SR, TIM_SR_UIF );
-	
+
 }
 
 /* Create an ISR which is called whenever the timer has expired. This function
@@ -75,5 +75,5 @@ vMBPortTimersDisable(  )
  */
 static void prvvTIMERExpiredISR( void )
 {
-    ( void )pxMBPortCBTimerExpired(  );
+	( void )pxMBPortCBTimerExpired(  );
 }
