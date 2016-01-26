@@ -88,6 +88,70 @@ static	const	uint8_t	Cfg7705[CS7705_Max][2] =
 	}
 };
 
+uint8_t	SetBuf[CS7705_Max][12];
+void	ConfigureRead( enum enumCS7705 cs, uint8_t xs )
+{
+
+	uint8_t		iRetry;
+
+	for ( iRetry = 10u; iRetry != 0u; --iRetry )
+	{
+		uint8_t	ReadyState;
+		Select7705( cs );
+		delay( 1u );
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+		Select7705( CS7705_none );			//		DeSelect All
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			Select7705( cs );
+			AD7705_Shift_Out( RS_6 + READ + xs );
+			SetBuf[cs][0 + 6 * xs] = AD7705_Shift_In();
+			SetBuf[cs][1 + 6 * xs] = AD7705_Shift_In();
+			SetBuf[cs][2 + 6 * xs] = AD7705_Shift_In();
+			Select7705( CS7705_none );		//		DeSelect All	
+			delay( 1u );
+			break;	//	done.
+		}
+		delay( 10u );
+	}
+	
+	for ( iRetry = 10u; iRetry != 0u; --iRetry )
+	{
+		uint8_t	ReadyState;
+		Select7705( cs );
+		delay( 1u );
+		AD7705_Shift_Out( RS_0 + READ + xs );
+		ReadyState = AD7705_Shift_In();
+		Select7705( CS7705_none );			//	DeSelect All
+		if ( 0x00u == ( ReadyState & DRDY ))
+		{
+			Select7705( cs );
+			AD7705_Shift_Out( RS_7 + READ + xs );
+			SetBuf[cs][3 + 6 * xs] = AD7705_Shift_In();
+			SetBuf[cs][4 + 6 * xs] = AD7705_Shift_In();
+			SetBuf[cs][5 + 6 * xs] = AD7705_Shift_In();	
+			Select7705( CS7705_none );			//	DeSelect All	
+			delay( 1u );
+			break;	//	done.
+		}
+		delay( 10u );
+	}
+
+}
+void	ConfigureWrite( enum enumCS7705 cs, uint8_t xs )
+{
+		AD7705_Shift_Out( RS_6 + xs );
+		AD7705_Shift_Out( SetBuf[cs][0 + 6 * xs]  );
+		AD7705_Shift_Out( SetBuf[cs][1 + 6 * xs] );
+		AD7705_Shift_Out( SetBuf[cs][2 + 6 * xs] );
+				
+		AD7705_Shift_Out( RS_7 + xs );
+		AD7705_Shift_Out( SetBuf[cs][3 + 6 * xs]  );
+		AD7705_Shift_Out( SetBuf[cs][4 + 6 * xs] );
+		AD7705_Shift_Out( SetBuf[cs][5 + 6 * xs] );
+
+}
 /**
  *	对指定的通道进行转换。回读配置供主程序判断7705是否工作正常。
  */
@@ -121,6 +185,9 @@ bool	Convert7705( enum enumCS7705 cs, uint8_t xs )
 
 	Select7705( cs );
 	delay( 1u );
+	
+	ConfigureWrite( cs, xs );
+	
 	mode_readback = _Convert7705( mode_set, xs );	
 	Select7705( CS7705_none );
 	delay( 1u );
@@ -156,12 +223,10 @@ uint16_t	Readout7705( enum enumCS7705 cs, uint8_t xs )
 		ResultH = AD7705_Shift_In();
 		ResultL = AD7705_Shift_In();
 		Result = ( ResultL + ( ResultH * 0x100u ));
-		
 		Select7705( CS7705_none );			//	DeSelect All	
 		delay( 1u );
 		break;	//	done.
 		 }
-// 		Select7705( CS7705_none );			//	DeSelect All	
 		delay( 20u );
 	}
 
@@ -192,7 +257,11 @@ void	Initialize7705( void )
 
 	}
 	delay( 220u );
-
+	for ( i = 0u; i < CS7705_Max; ++i )
+	{
+		ConfigureRead( (enum enumCS7705) i, 1u );
+	}
+	
 	for ( i = 0u; i < CS7705_Max; ++i )
 	{
 		Select7705( i );
@@ -204,7 +273,14 @@ void	Initialize7705( void )
 	}
 
 	delay( 220u );
+	
+	for ( i = 0u; i < CS7705_Max; ++i )
+	{
+		ConfigureRead( (enum enumCS7705) i, 0u );
+	}
+
 }
+
 
 
 /********  (C) COPYRIGHT 2015 青岛金仕达电子科技有限公司  **** End Of File ****/

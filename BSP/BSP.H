@@ -108,7 +108,7 @@ enum	enumCS7705
 };
 
 extern	void	Select7705( uint8_t cs );
-extern	void	ConfigureRead( uint8_t *buf, enum enumCS7705 cs, uint8_t xs );
+extern	void	ConfigureRead( enum enumCS7705 cs, uint8_t xs );
 extern  void	Initialize7705( void );
 extern	bool		Convert7705( enum enumCS7705 cs, uint8_t xs );
 extern	uint16_t	Readout7705( enum enumCS7705 cs, uint8_t xs );

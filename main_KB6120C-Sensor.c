@@ -269,7 +269,12 @@ void	Update_CH0( void )
 			}
 		}
 	}
-
+for ( i = 0u; i < CS7705_Max; ++i )
+if ( isExist7705[i] )
+if(usRegInputBuf[0] % 50 == 0 )
+{
+	ConfigureRead( (enum enumCS7705)i, 0u );
+}
 
 	//	通道 CH0 的结果连续多次采样的平均值
 	for ( i = 0u; i < CS7705_Max; ++i )
@@ -317,7 +322,10 @@ void	Update_CH1( void )
 				Sum7705_CH1[i][1] = Sum7705_CH1[i][2];
 				Sum7705_CH1[i][2] = Sum7705_CH1[i][3];
 				Sum7705_CH1[i][3] = Readout7705 ((enum enumCS7705)i, 1u );
-
+if(usRegInputBuf[0] % 50 == 0 )
+{
+	ConfigureRead( (enum enumCS7705)i, 1u );
+}
 				mean = ((uint32_t)Sum7705_CH1[i][0] + Sum7705_CH1[i][1] + Sum7705_CH1[i][2] + Sum7705_CH1[i][3] ) / 4u;
 
 				usRegInputBuf[16 + ( i * 5 )] = mean;	//	计前压力
