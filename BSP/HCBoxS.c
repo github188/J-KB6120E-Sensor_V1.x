@@ -344,16 +344,24 @@ void	HCBoxControl( void )
 			else
 			{  
 				HCBoxCount = 0;
+
 				if( EK >=  1 )
 				{
+					if( EN_Cool == FALSE )
+						ControlFlag = FALSE;
+
 					EN_Cool = TRUE;
-					EN_Heat = FALSE;		
-				}		
+					EN_Heat = FALSE;
+				}
+
 				if( EK <= -1 )
 				{
+					if( EN_Heat == FALSE )
+						ControlFlag = FALSE;
+
 					EN_Cool = FALSE;
 					EN_Heat = TRUE;
-				}		 
+				}
 			}			
 			break;
 		case MD_Cool:	
