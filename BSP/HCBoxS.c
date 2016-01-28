@@ -15,8 +15,8 @@
 struct	uHCBox
 {
 	uint8_t		SetMode;		//	设定的控制方式：禁止、加热、制冷、自动 四种方式
-	FP32		SetTemp;		//	设定的控制温度：
-	FP32		RunTemp;		//	实测的运行温度：
+	FP32		SetTemp;			//	设定的控制温度：
+	FP32		RunTemp;			//	实测的运行温度：
 	uint16_t	OutValue;		//	控制信号输出值[0,+2000]，>1000表示加热，<1000表示制冷。
 }HCBox;
 
@@ -211,16 +211,9 @@ static	void	HCBox_Wait( void )
 
 static	void	HCBox_Heat( void )  
 {
-	FP32	Kp = 10.0f / 128.0f;//0.0390625f;			//  5/128		//	*2
-	FP32	Ki = ( Kp / 240.0f );	//320.0f 	160.0f 	//	10.0f 
-	FP32	Kd = ( Kp * 75.0f );	//80.0f	80.0f		//	30.0
-// // 	FP32	Kp = 32.0f / 128.0f;//0.0390625f;			//  5/128		//	*2
-// // 	FP32	Ki = ( Kp / 300.0f );	//320.0f 	160.0f 	//	10.0f 
-// // 	FP32	Kd = ( Kp * 6.0f );	//80.0f	80.0f		//	30.0
-
-//	const	FP32	Kp = 0.2;
-//	const	FP32	Ki = ( Kp / 100.0f );
-//	const	FP32	Kd = ( Kp *  10.0f );
+	FP32	Kp = 10.0f / 128.0f;
+	FP32	Ki = ( Kp / 240.0f );
+	FP32	Kd = ( Kp * 75.0f );
 
 	FP32	TempRun, TempSet;
 	static FP32	Ek_1, Ek = 0.0f;
@@ -257,9 +250,9 @@ static	void	HCBox_Heat( void )
 
 static	void	HCBox_Cool( void )
 {
-	FP32	Kp = 25.0f / 128.0f ; ////0.1171875f;	15 / 128	//*2
-	FP32	Ki = ( Kp / 180.0f );	//	;240.0f		//10.0
-	FP32	Kd = ( Kp * 60.0f ) ;	//	80.0f			//3.0
+	FP32	Kp = 25.0f / 128.0f ; 
+	FP32	Ki = ( Kp / 180.0f );
+	FP32	Kd = ( Kp * 60.0f ) ;
 	static FP32	Ek_1, Ek = 0.0f;
 	static FP32	Up = 0.0f, Ui = 0.0f, Ud = 0.0f;
 	static FP32	Upid = 0.0f;
@@ -407,215 +400,7 @@ void	HCBoxControl( void )
 			HCBox_Wait();
 		}
 	}
-//	
 
 }
 
-
-
-
-
-
-
-
-/********  (C) COPYRIGHT 2014 青岛金仕达电子科技有限公司  **** End Of File ****/
-
-
-
-
-
-// 			//	如果温度偏差超过2'C且维持一段时间（30min）, 切换工作方式
-// 			if ( Ek > -1.5f )
-// 			{
-// 				shutcount_Cool = 0u;
-// 			}
-// 			else if ( shutcount_Cool < ( 60u * 1 ))//30u
-// 			{
-// 				++shutcount_Cool;
-// 			}
-// 			else
-// 			{
-// 				EN_Cool = FALSE;
-// 				EN_Heat = TRUE;
-// 			}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// #if 0
-
-// // 使用TIMx的CH1的捕获功能，用DMA记录脉冲的周期.
-// #define	CMR_Len	10
-// static	uint16_t	CMRA[CMR_Len];
-
-// // void	CMR1( void )
-// // {
-// // 	DMA_Channel_TypeDef	* DMA1_Channelx = DMA1_Channel6;
-// // 	TIM_TypeDef * TIMx = TIM16;
-// // 	
-// // 	//	DMA1 channel1 configuration
-// // 	SET_BIT ( RCC->AHBENR,  RCC_AHBENR_DMA1EN );
-// // 	//	DMA模块禁能, 重新配置
-// // 	DMA1_Channelx->CCR  = 0u;
-// // 	DMA1_Channelx->CCR  = DMA_CCR6_PL_0						//	通道优先级：01 中等
-// // 						| DMA_CCR6_PSIZE_0					//	内存数据位：01 16位
-// // 						| DMA_CCR6_MSIZE_0					//	外设数据位：01 16位
-// // 						| DMA_CCR6_MINC						//	增量模式：内存增量
-// // 						| DMA_CCR6_CIRC						//	循环传输：使能循环
-// // 					//	| DMA_CCR6_DIR						//	传送方向：从外设读
-// // 						;
-// // 	DMA1_Channelx->CPAR  = (uint32_t) &TIM16->CCR1;			//	设置DMA外设地址
-// // 	DMA1_Channelx->CMAR  = (uint32_t) CMRA;					//	内存地址
-// // 	DMA1_Channelx->CNDTR = CMR_Len;							//	传输数量
-// // 	SET_BIT ( DMA1_Channelx->CCR, DMA_CCR1_EN );			//	使能DMA通道
-
-// // 	//	配置TIMx 进行输入捕获。
-// // 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_TIM16EN );
-// // 	TIMx->CR1   = 0u;
-// // 	TIMx->CR2   = 0u;
-// // 	TIMx->CCER  = 0u;
-// // 	TIMx->CCMR1 = 0u;
-// // 	TIMx->CCMR2 = 0u;
-// // 	//	TIMx 时基初始化: 输入时钟频率24MHz，分频成1MHz的输入。
-// // 	//	时基决定可以测量的最低速度与最高速度。
-// // 	TIMx->PSC = 240u - 1;	//	10us @ 24MHz
-// // 	TIMx->ARR = 0xFFFFu;
-// // 	TIMx->EGR = TIM_EGR_UG;
-// // 	
-// // 	TIMx->CCMR1 = TIM_CCMR1_CC1S_0					//	CC1S  : 01b   IC1 映射到IT1上。
-// // 				| TIM_CCMR1_IC1F_1|TIM_CCMR1_IC1F_0	//	IC1F  : 0011b 配置输入滤波器，8个定时器时钟周期滤波
-// // 				| TIM_CCMR1_IC2PSC_1				//	IC1PSC: 01b   配置输入分频，每隔2次事件发生一次捕获
-// // 				;
-// // 	TIMx->CCER  = TIM_CCER_CC1E						//	允许 CCR1 执行捕获
-// // 				| TIM_CCER_CC1P						//	负边沿CCR1捕获信号周期。
-// // 				;
-// // 	TIMx->DIER  = TIM_DIER_CC1DE;
-
-// // 	TIMx->CR1   = TIM_CR1_CEN;						//	使能定时器
-
-// // 	//	配置管脚：PA.6 浮空输入
-// // 	SET_BIT( RCC->APB2ENR, RCC_APB2ENR_IOPAEN );
-// // 	MODIFY_REG( GPIOA->CRL, 0x0F000000u, 0x04000000u );
-// // }
-
-// uint16_t	fetchSpeed( void )
-// {	//	取 DMA 计数 或 内存地址指针，并连续向前增量两次。
-// 	//	如果DMA计数 或 内存指针都不可用，取N次的差值，并丢弃最大值和最小值。
-// 	
-// 	/*	固定间隔1s记录风扇转动圈数到缓冲区，
-// 	 *	依次计算增量并滤波的结果即风扇转速。
-// 	 */
-// 	DMA_Channel_TypeDef	* DMA1_Channelx = DMA1_Channel6;
-// 	uint8_t 	ii, index;
-// 	uint16_t	sum = 0u;
-// //	uint16_t	max = 0u;
-// //	uint16_t	min = 0xFFFFu;
-// 	uint16_t	x0, x1, period;
-
-// 	index = ( DMA1_Channelx->CMAR - ( uint32_t ) CMRA ) / sizeof( uint16_t);	//	内存地址
-// 	if ( ++index >= CMR_Len ){  index = 0u; }
-// 	if ( ++index >= CMR_Len ){  index = 0u; }
-// 	
-// 	x1 = CMRA[index];
-// 	for ( ii = CMR_Len - 2u; ii != 0; --ii )
-// 	{
-// 		//	依次求增量得到速度
-// 		x0 = x1;
-// 		if ( ++index >= CMR_Len ){  index = 0u; }
-// 		x1 = CMRA[index];
-// 		period = (uint16_t)( x1 - x0 );
-// 		//	对多个数据进行滤波
-// //		if ( period > max ) {  max = period; }
-// //		if ( period < min ) {  min = period; }
-// //		sum += period;
-// 	}
-// 	period = sum / ( CMR_Len - 2u );
-// //	period = (uint16_t)( sum - max - min ) / ( CMR_Len - (1u+2u));
-
-// 	if ( period == 0u )
-// 	{
-// 		return	0xFFFFu;
-// 	}
-// 	else
-// 	{	//	每分钟的计数周期 / 每个脉冲的计数时间 => 每分钟的转速
-// 		return	(( 60u * 100000u ) / period );
-// 	}
-// }
-
-// #endif
-// // iCount;
-
-
-// // _isr_t( void )
-
-// // {
-// // 	static uint8_t iPWM =0;
-// // 	iCount ++;
-// // 	if ( (t1 - t0) > 1000 )
-// // 	//	t0 += 1000;
-// // 	(t0 = t1;
-// // 	{
-// // 		
-// // 	}
-// // 	
-// // 	
-// // 	++iPWM;
-// // 	if (iPWM>= 100 )
-// // 	{
-// // 		iPWM = 0;
-// // 	}
-// // 	
-// // 	Heat = iPWM>out
-// // 	
-// // }
-// // void heat( void )
-// // {
-// // 	static t0;// = iCount;
-// // 	t1 = iCount;
-// // 	if ( (t1 - t0) > 1000 )
-// // 	//	t0 += 1000;
-// // 	(t0 = t1;
-// // 		
-// // 	{
-// // 		pid = ???
-// // 		out = pid;		
-// // 	}
-// // 	
-// // 	
-// // }
 
